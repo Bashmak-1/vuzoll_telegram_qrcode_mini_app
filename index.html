@@ -1,53 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vuzoll Warehouse</title>
+    <!-- Підключення Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: sans-serif;
-        }
-        h1 { margin-bottom: 20px; }
-        #status { font-size: 18px; color: var(--tg-theme-hint-color, #888); }
-    </style>
+    <!-- Підключення наших стилів -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Підключення нашої логіки (defer означає, що завантажиться після HTML) -->
+    <script src="js/app.js" defer></script>
 </head>
 <body>
-    <h1>Warehouse Scanner</h1>
-    <p id="status">Launching camera...</p>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
+    <div class="header">
+        <div class="top-row">
+            <h2 style="margin:0;">Склад 📦</h2>
+            <button class="theme-btn" id="themeBtn">🌗 Тема</button>
+        </div>
 
-        // Функція сканування
-        function scan() {
-            // Викликаємо нативний метод Телеграму
-            tg.showScanQrPopup({
-                text: "Наведіть камеру на QR-код деталі" 
-            }, function (text) {
-                // Ця функція спрацює, коли код буде знайдено
-                
-                // 1. Закриваємо сканер
-                tg.closeScanQrPopup(); 
-                
-                // 2. Відправляємо дані (UUID) боту
-                tg.sendData(text); 
-            });
-        }
+        <div class="api-config">
+            <input type="text" id="apiUrlInput" placeholder="URL API (автоматично)" onchange="saveApiUrl()">
+        </div>
 
-        // Запускаємо сканер одразу при відкритті
-        // Можна додати кнопку, але автоматично зручніше
-        scan();
-    </script>
+        <div class="controls-row">
+            <select id="actionType">
+                <option value="take">🔻 Взяти</option>
+                <option value="restock">🚚 Поповнити</option>
+                <option value="fact">📋 Факт (Інвент.)</option>
+            </select>
+            <button class="scan-btn" id="scanBtn">📷 Скан</button>
+        </div>
+    </div>
+
+    <div id="itemList" class="item-list">
+        <!-- Сюди JS буде додавати картки -->
+        <div class="empty-state">
+            <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
+            <p>Кошик пустий</p>
+            <p>Натисни "Скан", щоб додати деталі</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button id="submitBtn" class="submit-btn" disabled>
+            Зберегти (0)
+        </button>
+    </div>
+
 </body>
 </html>

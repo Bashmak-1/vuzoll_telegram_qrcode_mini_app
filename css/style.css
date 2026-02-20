@@ -1,0 +1,223 @@
+/* === ЗМІННІ ТЕМ (Dark Default) === */
+:root {
+    --bg-color: #1c1c1e;
+    --card-bg: #2c2c2e;
+    --text-color: #ffffff;
+    --hint-color: #98989f;
+    --button-color: #0a84ff;
+    --button-text: #ffffff;
+    --danger-color: #ff453a;
+    --border-color: #3a3a3c;
+    --input-bg: #1c1c1e;
+}
+
+/* Світла тема */
+body.light-theme {
+    --bg-color: #f2f2f7;
+    --card-bg: #ffffff;
+    --text-color: #000000;
+    --hint-color: #8e8e93;
+    --button-color: #007aff;
+    --button-text: #ffffff;
+    --danger-color: #ff3b30;
+    --border-color: #c6c6c8;
+    --input-bg: #f2f2f7;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 100px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* --- HEADER --- */
+.header {
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    padding: 15px;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.controls-row {
+    display: flex;
+    gap: 10px;
+}
+
+select, input[type="text"] {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+}
+
+select { flex-grow: 1; }
+
+.theme-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.scan-btn {
+    background: var(--button-color);
+    color: var(--button-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+/* --- API URL INPUT --- */
+.api-config {
+    font-size: 12px;
+    display: flex;
+    gap: 5px;
+}
+.api-config input {
+    width: 100%;
+    padding: 5px;
+    font-size: 12px;
+    border: 1px solid #ffcc00; /* Жовтий, щоб виділялось */
+}
+
+/* --- LIST --- */
+.item-list { padding: 15px; }
+
+.empty-state {
+    text-align: center;
+    margin-top: 60px;
+    color: var(--hint-color);
+    opacity: 0.7;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    animation: fadeIn 0.3s ease;
+    position: relative;
+}
+
+.card-header {
+    display: flex;
+    gap: 15px;
+}
+
+.item-icon {
+    font-size: 24px;
+    background: var(--bg-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-details h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+.item-details p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--hint-color);
+}
+
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qty-input {
+    width: 60px;
+    text-align: center;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.remove-btn {
+    color: var(--danger-color);
+    background: none;
+    border: none;
+    font-size: 20px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+/* --- FOOTER --- */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background: var(--button-color);
+    color: var(--button-text);
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
