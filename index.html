@@ -40,12 +40,12 @@
             <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
         </div>
 
-        <!-- Головний перемикач дії (впливає на нові додані товари) -->
+        <!-- Глобальна дія -->
         <div class="controls-row">
-            <label style="font-size: 12px; color: var(--hint-color);">Режим за замовчуванням:</label>
+            <label style="font-size: 12px; color: var(--hint-color); display:flex; align-items:center;">За замовчуванням:</label>
             <select id="globalActionType">
                 <option value="take">🔻 Взяти</option>
-                <option value="restock">🚚 Поповнити</option>
+                <option value="restock">🚚 Додати</option>
                 <option value="fact">📋 Факт</option>
             </select>
             <button class="scan-btn" id="scanBtn">📷 Скан</button>
@@ -63,19 +63,18 @@
         <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
     </div>
 
-    <!-- МОДАЛКА ЛОГІВ -->
+    <!-- МОДАЛКА ЛОГІВ (Тільки локальні) -->
     <div id="logsModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Логи</h3>
+                <h3>Логи Сайту (Console)</h3>
                 <button id="closeLogs" class="close-btn">✖</button>
             </div>
             <div class="logs-controls">
-                <button id="copyLogsBtn" class="action-btn">📋 Копіювати ВСЕ</button>
-                <button id="clearLogsBtn" class="action-btn danger">🗑 Очистити локальні</button>
+                <button id="copyLogsBtn" class="action-btn">📋 Копіювати все</button>
+                <button id="clearLogsBtn" class="action-btn danger">🗑 Очистити</button>
             </div>
-            <pre id="logsArea">Завантаження...</pre>
-            <button id="fetchServerLogsBtn" class="refresh-btn">🔄 Завантажити з сервера (100 рядків)</button>
+            <pre id="logsArea">Логів поки немає...</pre>
         </div>
     </div>
 
