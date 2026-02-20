@@ -221,3 +221,114 @@ select { flex-grow: 1; }
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ІНДИКАТОР */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ff453a; /* Червоний - нема зв'язку */
+    box-shadow: 0 0 5px rgba(255, 69, 58, 0.5);
+    transition: background-color 0.3s;
+}
+.status-dot.connected {
+    background-color: #30d158; /* Зелений */
+    box-shadow: 0 0 5px rgba(48, 209, 88, 0.5);
+}
+
+.icon-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px 10px;
+    color: var(--text-color);
+}
+
+/* ПОШУК */
+.search-container {
+    position: relative;
+    width: 100%;
+}
+#searchInput {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box; /* Важливо, щоб не вилазив */
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 200;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.search-results.hidden { display: none; }
+
+.search-item {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+.search-item:hover { background: var(--bg-color); }
+.search-item small { color: var(--hint-color); display: block; }
+
+/* МОДАЛКА */
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal.hidden { display: none; }
+
+.modal-content {
+    background: var(--bg-color);
+    width: 90%;
+    height: 80%;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.close-btn {
+    background: none; border: none; font-size: 20px; color: var(--text-color); cursor: pointer;
+}
+
+#logsArea {
+    flex-grow: 1;
+    background: #000;
+    color: #0f0;
+    padding: 10px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 10px;
+    border-radius: 6px;
+    white-space: pre-wrap; /* Перенос рядків */
+}
+
+.refresh-btn {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--button-color);
+    color: var(--button-text);
+    border: none;
+    border-radius: 8px;
+}

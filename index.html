@@ -15,37 +15,57 @@
 
     <div class="header">
         <div class="top-row">
-            <h2 style="margin:0;">Склад 📦</h2>
-            <button class="theme-btn" id="themeBtn">🌗 Тема</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div id="statusDot" class="status-dot disconnected"></div>
+                <h2 style="margin:0;">Склад 📦</h2>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="icon-btn" id="logsBtn">📜</button>
+                <button class="theme-btn" id="themeBtn">🌗</button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
+            <div id="searchResults" class="search-results hidden"></div>
         </div>
 
         <div class="api-config">
-            <input type="text" id="apiUrlInput" placeholder="URL API (автоматично)" onchange="saveApiUrl()">
+            <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
         </div>
 
         <div class="controls-row">
             <select id="actionType">
                 <option value="take">🔻 Взяти</option>
                 <option value="restock">🚚 Поповнити</option>
-                <option value="fact">📋 Факт (Інвент.)</option>
+                <option value="fact">📋 Факт</option>
             </select>
             <button class="scan-btn" id="scanBtn">📷 Скан</button>
         </div>
     </div>
 
     <div id="itemList" class="item-list">
-        <!-- Сюди JS буде додавати картки -->
         <div class="empty-state">
             <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
             <p>Кошик пустий</p>
-            <p>Натисни "Скан", щоб додати деталі</p>
         </div>
     </div>
 
     <div class="footer">
-        <button id="submitBtn" class="submit-btn" disabled>
-            Зберегти (0)
-        </button>
+        <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
+    </div>
+
+    <!-- МОДАЛЬНЕ ВІКНО ЛОГІВ -->
+    <div id="logsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Логи Браузера</h3> <!-- Змінив заголовок -->
+                <button id="closeLogs" class="close-btn">✖</button>
+            </div>
+            <pre id="logsArea">Завантаження...</pre>
+            <button id="refreshLogs" class="refresh-btn">🗑 Очистити</button>
+        </div>
     </div>
 
 </body>
