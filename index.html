@@ -26,8 +26,13 @@
             </div>
         </div>
 
+        <!-- ПОШУК ЗІ СПІННЕРОМ -->
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
+            <div class="input-wrapper">
+                <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
+                <!-- Спіннер (за замовчуванням прихований) -->
+                <div id="searchSpinner" class="spinner hidden"></div>
+            </div>
             <div id="searchResults" class="search-results hidden"></div>
         </div>
 
@@ -35,8 +40,10 @@
             <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
         </div>
 
+        <!-- Головний перемикач дії (впливає на нові додані товари) -->
         <div class="controls-row">
-            <select id="actionType">
+            <label style="font-size: 12px; color: var(--hint-color);">Режим за замовчуванням:</label>
+            <select id="globalActionType">
                 <option value="take">🔻 Взяти</option>
                 <option value="restock">🚚 Поповнити</option>
                 <option value="fact">📋 Факт</option>
@@ -56,15 +63,19 @@
         <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
     </div>
 
-    <!-- МОДАЛЬНЕ ВІКНО ЛОГІВ -->
+    <!-- МОДАЛКА ЛОГІВ -->
     <div id="logsModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Логи Браузера</h3> <!-- Змінив заголовок -->
+                <h3>Логи</h3>
                 <button id="closeLogs" class="close-btn">✖</button>
             </div>
+            <div class="logs-controls">
+                <button id="copyLogsBtn" class="action-btn">📋 Копіювати ВСЕ</button>
+                <button id="clearLogsBtn" class="action-btn danger">🗑 Очистити локальні</button>
+            </div>
             <pre id="logsArea">Завантаження...</pre>
-            <button id="refreshLogs" class="refresh-btn">🗑 Очистити</button>
+            <button id="fetchServerLogsBtn" class="refresh-btn">🔄 Завантажити з сервера (100 рядків)</button>
         </div>
     </div>
 

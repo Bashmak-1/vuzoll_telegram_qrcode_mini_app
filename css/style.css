@@ -332,3 +332,69 @@ select { flex-grow: 1; }
     border: none;
     border-radius: 8px;
 }
+
+/* СПІННЕР ПОШУКУ */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+.spinner {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--hint-color);
+    border-top: 2px solid var(--button-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.spinner.hidden { display: none; }
+
+@keyframes spin { 0% { transform: translateY(-50%) rotate(0deg); } 100% { transform: translateY(-50%) rotate(360deg); } }
+
+/* КАРТКА ТОВАРУ */
+.item-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    gap: 10px;
+}
+
+/* Селект дії всередині картки */
+.item-action-select {
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    width: 110px; /* Фіксована ширина */
+}
+
+/* Стилі для кнопок в модалці */
+.logs-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.action-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+}
+.action-btn.danger { color: var(--danger-color); border-color: var(--danger-color); }
+
+/* ID товару повністю */
+.item-id-full {
+    font-size: 11px;
+    color: var(--hint-color);
+    word-break: break-all; /* Ламати довгі слова */
+    margin: 2px 0;
+}
