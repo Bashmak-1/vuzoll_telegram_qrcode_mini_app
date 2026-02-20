@@ -1,142 +1,134 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// === 1. ВІРТУАЛЬНА КОНСОЛЬ (Логи сайту) ===
-const debugLogs = [];
-const MAX_LOGS = 300; // Тримаємо в пам'яті до 300 рядків
+// === CONFIG ===
+const POLLING_MIN_INTERVAL = 5000;  // 5 сек
+const POLLING_MAX_INTERVAL = 60000; // 60 сек
+const POLLING_GROWTH_FACTOR = 1.5;  // Множник збільшення
 
-function addFrontendLog(type, args) {
-    const time = new Date().toLocaleTimeString();
-    const message = args.map(arg => {
-        if (typeof arg === 'object') return JSON.stringify(arg);
-        return String(arg);
-    }).join(' ');
-    
-    debugLogs.push(`[${time}] [${type}] ${message}`);
-    if (debugLogs.length > MAX_LOGS) debugLogs.shift();
-}
-
-// Перехоплення стандартної консолі
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
-
-console.log = (...args) => { addFrontendLog('INFO', args); originalLog.apply(console, args); };
-console.error = (...args) => { addFrontendLog('ERROR', args); originalError.apply(console, args); };
-console.warn = (...args) => { addFrontendLog('WARN', args); originalWarn.apply(console, args); };
-
-// Перехоплення критичних помилок (Crash)
-window.onerror = (msg, url, line) => {
-    addFrontendLog('CRASH', [`${msg} (на лінії ${line})`]);
-    return false;
-};
-
-// === 2. КОНФІГУРАЦІЯ ТА СТАН ===
-let cart = [];
-let API_BASE = "";
-const HEADERS = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
-
-// Адаптивний полінг (перевірка зв'язку)
-let currentPollingInterval = 5000;
+let currentPollingInterval = POLLING_MIN_INTERVAL;
 let pollingTimer = null;
 let lastUserActionTime = Date.now();
 
-// === 3. ІНІЦІАЛІЗАЦІЯ ===
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("🚀 Frontend ініціалізовано");
-    
-    API_BASE = getApiUrl();
-    console.log("🔗 API URL:", API_BASE || "Not set");
+// === STATE ===
+let cart = [];
+let API_BASE = "";
+const debugLogs = []; // Локальні логи (консоль)
 
+// Заголовки
+const HEADERS = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded', () => {
+    API_BASE = getApiUrl();
     const input = document.getElementById('apiUrlInput');
     if (input && API_BASE) input.value = API_BASE;
-
     restoreTheme();
 
-    // Слухачі інтерфейсу
+    // Listeners
     document.getElementById('themeBtn').addEventListener('click', toggleTheme);
     document.getElementById('scanBtn').addEventListener('click', startScan);
     document.getElementById('submitBtn').addEventListener('click', submitOrder);
-    document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 500));
     
-    // Модалка логів
+    // Пошук
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', debounce(handleSearch, 500));
+    searchInput.addEventListener('focus', resetPolling); // Скидаємо таймер при активності
+
+    // Логи
     document.getElementById('logsBtn').addEventListener('click', showLogs);
     document.getElementById('closeLogs').addEventListener('click', () => document.getElementById('logsModal').classList.add('hidden'));
-    
-    // Нові кнопки копіювання логів САЙТУ
-    document.getElementById('copyLogsBtn').innerText = "📋 Копіювати 100";
-    document.getElementById('copyLogsBtn').onclick = () => copySiteLogs(100);
-    
-    document.getElementById('clearLogsBtn').innerText = "📋 Копіювати ВСЕ";
-    document.getElementById('clearLogsBtn').onclick = () => copySiteLogs(0);
-
-    // Кнопка завантаження логів БОТА (якщо треба)
+    document.getElementById('copyLogsBtn').addEventListener('click', copyAllLogs);
+    document.getElementById('clearLogsBtn').addEventListener('click', clearLocalLogs);
     document.getElementById('fetchServerLogsBtn').addEventListener('click', fetchServerLogs);
 
-    // Активність користувача
+    // Глобальний клік скидає таймер полінгу (активність юзера)
     document.addEventListener('click', resetPolling);
-    
-    if (API_BASE) scheduleNextPoll();
+    document.addEventListener('touchstart', resetPolling);
+
+    // Старт полінгу
+    if (API_BASE) {
+        scheduleNextPoll();
+    }
 });
 
-// === 4. РОБОТА З ЛОГАМИ (FRONTEND) ===
-function showLogs() {
-    document.getElementById('logsModal').classList.remove('hidden');
-    renderLogs();
-}
-
-function renderLogs() {
-    const area = document.getElementById('logsArea');
-    area.textContent = debugLogs.length > 0 ? debugLogs.join('\n') : "Логів сайту ще немає...";
-    area.scrollTop = area.scrollHeight;
-}
-
-async function copySiteLogs(count) {
-    let textToCopy = "";
-    if (count > 0) {
-        textToCopy = debugLogs.slice(-count).join('\n');
-    } else {
-        textToCopy = debugLogs.join('\n');
-    }
-
-    try {
-        await navigator.clipboard.writeText(`=== FRONTEND LOGS ===\n${textToCopy}`);
-        tg.showAlert("✅ Логи сайту скопійовано!");
-    } catch (err) {
-        tg.showAlert("❌ Не вдалося скопіювати: " + err);
+// === ADAPTIVE POLLING ===
+function resetPolling() {
+    lastUserActionTime = Date.now();
+    // Якщо інтервал був довгий, скидаємо на швидкий і одразу перевіряємо
+    if (currentPollingInterval > POLLING_MIN_INTERVAL) {
+        currentPollingInterval = POLLING_MIN_INTERVAL;
+        console.log("⚡ User active! Resetting polling to 5s");
+        clearTimeout(pollingTimer);
+        checkConnection(); // Миттєва перевірка
     }
 }
 
-async function fetchServerLogs() {
-    const area = document.getElementById('logsArea');
-    area.textContent = "⏳ Завантаження логів БОТА з сервера...";
+function scheduleNextPoll() {
+    pollingTimer = setTimeout(async () => {
+        await checkConnection();
+        
+        // Логіка збільшення інтервалу
+        const timeSinceAction = Date.now() - lastUserActionTime;
+        
+        if (timeSinceAction > 60000) { // Якщо юзер не активний більше хвилини
+            currentPollingInterval = Math.min(currentPollingInterval * POLLING_GROWTH_FACTOR, POLLING_MAX_INTERVAL);
+        } else {
+            currentPollingInterval = POLLING_MIN_INTERVAL;
+        }
+
+        // console.log(`Next poll in ${Math.round(currentPollingInterval/1000)}s`);
+        scheduleNextPoll();
+    }, currentPollingInterval);
+}
+
+// === HEALTH CHECK ===
+async function checkConnection() {
+    const dot = document.getElementById('statusDot');
     try {
-        const res = await fetch(`${API_BASE}/api/logs`, { headers: HEADERS });
-        const data = await res.json();
-        area.textContent = `=== SERVER LOGS ===\n${data.logs}`;
+        const res = await fetch(`${API_BASE}/api/health`, { headers: HEADERS });
+        if (res.ok) {
+            dot.classList.add('connected');
+            dot.classList.remove('disconnected');
+        } else { throw new Error(); }
     } catch (e) {
-        area.textContent = "❌ Помилка завантаження логів сервера.";
+        dot.classList.remove('connected');
+        dot.classList.add('disconnected');
     }
 }
 
-// === 5. ФУНКЦІЇ API ТА КОШИКА ===
+// === ПОШУК ===
+let debounceTimer;
+function debounce(func, timeout){
+    return (...args) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
 async function handleSearch() {
     const query = document.getElementById('searchInput').value.trim();
     const resultsDiv = document.getElementById('searchResults');
     const spinner = document.getElementById('searchSpinner');
 
-    if (query.length < 2) { resultsDiv.classList.add('hidden'); return; }
+    if (query.length < 2) {
+        resultsDiv.classList.add('hidden');
+        return;
+    }
 
-    spinner?.classList.remove('hidden');
+    // Показуємо спіннер
+    spinner.classList.remove('hidden');
+
     try {
         const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`, { headers: HEADERS });
         const data = await res.json();
+        
         resultsDiv.innerHTML = '';
-        if (data.results?.length > 0) {
+        if (data.results && data.results.length > 0) {
             data.results.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
-                div.innerHTML = `<b>${item.name}</b><small>ID: ${item.id}</small>`;
+                div.innerHTML = `<b>${item.name}</b><small>${item.id}</small>`;
                 div.onclick = () => {
                     fetchItem(item.id);
                     document.getElementById('searchInput').value = '';
@@ -149,10 +141,186 @@ async function handleSearch() {
             resultsDiv.innerHTML = '<div class="search-item">Нічого не знайдено</div>';
             resultsDiv.classList.remove('hidden');
         }
-    } catch (e) { console.error("Search Error:", e); }
-    finally { spinner?.classList.add('hidden'); }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        // Ховаємо спіннер
+        spinner.classList.add('hidden');
+    }
 }
 
+// === КАРТКА ТОВАРУ ТА СПИСОК ===
+function addToCart(item) {
+    const globalAction = document.getElementById('globalActionType').value;
+    
+    // Додаємо поле action для кожного товару окремо
+    cart.push({ 
+        ...item, 
+        inputQty: 0,
+        action: globalAction // Встановлюємо дефолтну дію
+    });
+    render();
+}
+
+function updateItemAction(id, newAction) {
+    const item = cart.find(i => i.id === id);
+    if (item) item.action = newAction;
+}
+
+window.updateQty = function(id, val) { 
+    const item = cart.find(i => i.id === id); 
+    if (item) item.inputQty = parseInt(val) || 0; 
+}
+window.removeFromCart = function(id) {
+    tg.showConfirm("Видалити?", (ok) => { 
+        if (ok) { cart = cart.filter(i => i.id !== id); render(); } 
+    });
+}
+window.changeItemAction = function(id, val) {
+    updateItemAction(id, val);
+}
+
+function render() {
+    const list = document.getElementById('itemList');
+    const btn = document.getElementById('submitBtn');
+
+    if (cart.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div style="font-size: 40px; margin-bottom: 10px;">📷</div><p>Кошик пустий</p></div>`;
+        btn.disabled = true; btn.innerText = "Зберегти (0)"; return;
+    }
+
+    list.innerHTML = "";
+    cart.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        
+        // Вибір дії (Select)
+        const selectHtml = `
+            <select class="item-action-select" onchange="changeItemAction('${item.id}', this.value)">
+                <option value="take" ${item.action === 'take' ? 'selected' : ''}>🔻 Взяти</option>
+                <option value="restock" ${item.action === 'restock' ? 'selected' : ''}>🚚 Додати</option>
+                <option value="fact" ${item.action === 'fact' ? 'selected' : ''}>📋 Факт</option>
+            </select>
+        `;
+
+        el.innerHTML = `
+            <div class="card-header">
+                <div class="item-icon">📦</div>
+                <div class="item-details">
+                    <h3>${item.name}</h3>
+                    <div class="item-id-full">${item.id}</div>
+                    <p>На складі: <b>${item.quantity}</b> | ${item.location}</p>
+                </div>
+            </div>
+            
+            <div class="item-card-row">
+                ${selectHtml}
+                <div class="qty-control">
+                    <span>К-сть:</span>
+                    <input type="number" class="qty-input" placeholder="0" 
+                        value="${item.inputQty || ''}" 
+                        oninput="updateQty('${item.id}', this.value)">
+                </div>
+                <button class="remove-btn" onclick="removeFromCart('${item.id}')">🗑</button>
+            </div>
+        `;
+        list.appendChild(el);
+    });
+
+    btn.disabled = false; btn.innerText = `Зберегти (${cart.length})`;
+}
+
+// === SUBMIT ===
+async function submitOrder() {
+    if (!API_BASE) return;
+    tg.MainButton.showProgress();
+    
+    try {
+        const payload = {
+            user_id: tg.initDataUnsafe?.user?.id,
+            user_name: tg.initDataUnsafe?.user?.first_name,
+            items: cart.map(i => ({ 
+                id: i.id, 
+                qty: i.inputQty,
+                action: i.action // Відправляємо індивідуальну дію
+            }))
+        };
+
+        const res = await fetch(`${API_BASE}/api/submit_order`, {
+            method: 'POST',
+            headers: HEADERS,
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+            tg.showAlert("✅ Успішно!\n" + data.details.join('\n'));
+            cart = [];
+            render();
+        } else {
+            tg.showAlert("❌ Помилка сервера: " + data.error);
+        }
+
+    } catch (e) {
+        tg.showAlert("❌ Помилка: " + e.message);
+    }
+    tg.MainButton.hideProgress();
+}
+
+// === ЛОГИ ===
+function showLogs() {
+    document.getElementById('logsModal').classList.remove('hidden');
+    // Показуємо локальні логи при відкритті
+    document.getElementById('logsArea').textContent = debugLogs.join('\n') || "Локальні логи пусті.";
+}
+
+function clearLocalLogs() {
+    debugLogs.length = 0;
+    document.getElementById('logsArea').textContent = "Логи очищено.";
+}
+
+async function fetchServerLogs() {
+    const area = document.getElementById('logsArea');
+    area.textContent = "Завантаження з сервера...";
+    try {
+        const res = await fetch(`${API_BASE}/api/logs`, { headers: HEADERS });
+        const data = await res.json();
+        area.textContent = data.logs;
+    } catch (e) {
+        area.textContent = "Помилка завантаження: " + e.message;
+    }
+}
+
+async function copyAllLogs() {
+    try {
+        // Качаємо ПОВНІ логи з сервера
+        const res = await fetch(`${API_BASE}/api/logs?all=true`, { headers: HEADERS });
+        const data = await res.json();
+        const fullText = `=== LOCAL LOGS ===\n${debugLogs.join('\n')}\n\n=== SERVER LOGS ===\n${data.logs}`;
+        
+        await navigator.clipboard.writeText(fullText);
+        tg.showAlert("✅ Всі логи скопійовано в буфер обміну!");
+    } catch (e) {
+        tg.showAlert("❌ Помилка копіювання: " + e.message);
+    }
+}
+
+// === VIRTUAL CONSOLE (Зберігаємо код з попереднього кроку) ===
+const originalLog = console.log;
+const originalError = console.error;
+console.log = (...args) => { 
+    debugLogs.push(`[INFO] ${args.join(' ')}`); 
+    if(debugLogs.length > 200) debugLogs.shift();
+    originalLog.apply(console, args); 
+};
+console.error = (...args) => { 
+    debugLogs.push(`[ERROR] ${args.join(' ')}`); 
+    if(debugLogs.length > 200) debugLogs.shift();
+    originalError.apply(console, args); 
+};
+
+// ... (Функції fetchItem, getApiUrl, theme, startScan - без змін) ...
 async function fetchItem(id) {
     tg.MainButton.showProgress();
     try {
@@ -160,82 +328,9 @@ async function fetchItem(id) {
         const data = await res.json();
         if (data.error) tg.showAlert(`❌ ${data.error}`);
         else addToCart(data);
-    } catch (e) { tg.showAlert("❌ Помилка мережі"); console.error(e); }
+    } catch (e) { tg.showAlert(`❌ ${e.message}`); }
     tg.MainButton.hideProgress();
 }
-
-function addToCart(item) {
-    const globalAction = document.getElementById('globalActionType').value;
-    if (cart.find(i => i.id === item.id)) {
-        tg.showAlert("Цей товар вже додано!");
-        return;
-    }
-    cart.push({ ...item, inputQty: 1, action: globalAction });
-    render();
-}
-
-function render() {
-    const list = document.getElementById('itemList');
-    const btn = document.getElementById('submitBtn');
-    if (cart.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>Кошик порожній</p></div>';
-        btn.disabled = true; btn.innerText = "Зберегти (0)";
-        return;
-    }
-    list.innerHTML = "";
-    cart.forEach(item => {
-        const el = document.createElement('div');
-        el.className = 'card';
-        el.innerHTML = `
-            <div class="card-header">
-                <div class="item-icon">📦</div>
-                <div class="item-details">
-                    <h3>${item.name}</h3>
-                    <p class="item-id-full">${item.id}</p>
-                    <p>На складі: <b>${item.quantity}</b> | ${item.location || '?'}</p>
-                </div>
-            </div>
-            <div class="item-card-row">
-                <select class="item-action-select" onchange="updateItemAction('${item.id}', this.value)">
-                    <option value="take" ${item.action === 'take' ? 'selected' : ''}>🔻 Взяти</option>
-                    <option value="restock" ${item.action === 'restock' ? 'selected' : ''}>🚚 Додати</option>
-                    <option value="fact" ${item.action === 'fact' ? 'selected' : ''}>📋 Факт</option>
-                </select>
-                <div class="qty-control">
-                    <input type="number" class="qty-input" value="${item.inputQty}" oninput="updateQty('${item.id}', this.value)">
-                </div>
-                <button class="remove-btn" onclick="removeFromCart('${item.id}')">🗑</button>
-            </div>`;
-        list.appendChild(el);
-    });
-    btn.disabled = false; btn.innerText = `Зберегти (${cart.length})`;
-}
-
-async function submitOrder() {
-    if (!API_BASE || cart.length === 0) return;
-    tg.MainButton.showProgress();
-    try {
-        const payload = {
-            user_id: tg.initDataUnsafe?.user?.id,
-            user_name: tg.initDataUnsafe?.user?.first_name,
-            items: cart.map(i => ({ id: i.id, qty: i.inputQty, action: i.action }))
-        };
-        const res = await fetch(`${API_BASE}/api/submit_order`, {
-            method: 'POST', headers: HEADERS, body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-            tg.showAlert("✅ Збережено!\n" + data.details.join('\n'));
-            cart = []; render();
-        } else { tg.showAlert("❌ Помилка: " + data.error); }
-    } catch (e) { tg.showAlert("❌ Помилка відправки"); }
-    tg.MainButton.hideProgress();
-}
-
-// === 6. ДОПОМІЖНІ ФУНКЦІЇ (Themes, Polling, Helpers) ===
-window.updateQty = (id, val) => { const item = cart.find(i => i.id === id); if (item) item.inputQty = parseInt(val) || 0; };
-window.updateItemAction = (id, val) => { const item = cart.find(i => i.id === id); if (item) item.action = val; };
-window.removeFromCart = (id) => { cart = cart.filter(i => i.id !== id); render(); };
 
 function getApiUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -247,65 +342,33 @@ function getApiUrl() {
     }
     return localStorage.getItem('vuzoll_api_url') || "";
 }
-
-function resetPolling() {
-    lastUserActionTime = Date.now();
-    if (currentPollingInterval > 5000) {
-        currentPollingInterval = 5000;
-        clearTimeout(pollingTimer);
-        checkConnection();
-        scheduleNextPoll();
-    }
+function saveApiUrl() {
+    const val = document.getElementById('apiUrlInput').value.trim();
+    API_BASE = val.replace(/\/$/, "");
+    localStorage.setItem('vuzoll_api_url', API_BASE);
+    tg.showAlert("URL збережено.");
+    resetPolling();
 }
-
-async function checkConnection() {
-    const dot = document.getElementById('statusDot');
-    try {
-        const res = await fetch(`${API_BASE}/api/health`, { headers: HEADERS });
-        if (res.ok) { dot.classList.add('connected'); dot.classList.remove('disconnected'); }
-        else throw new Error();
-    } catch (e) { dot.classList.remove('connected'); dot.classList.add('disconnected'); }
-}
-
-function scheduleNextPoll() {
-    pollingTimer = setTimeout(async () => {
-        await checkConnection();
-        const idleTime = Date.now() - lastUserActionTime;
-        if (idleTime > 60000) currentPollingInterval = Math.min(currentPollingInterval * 1.5, 60000);
-        else currentPollingInterval = 5000;
-        scheduleNextPoll();
-    }, currentPollingInterval);
-}
-
-function debounce(func, timeout) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => { func.apply(this, args); }, timeout);
-    };
-}
-
 function startScan() {
-    tg.showScanQrPopup({ text: "Скануйте QR-код деталі" }, (text) => {
+    if (!API_BASE) { tg.showAlert("⚠️ Немає API URL!"); return; }
+    tg.showScanQrPopup({ text: "Наведи на QR-код" }, (text) => {
         tg.closeScanQrPopup();
+        if (cart.find(i => i.id === text)) { tg.showAlert("⚠️ Вже в списку!"); return; }
         fetchItem(text);
-        return true;
     });
 }
-
 function restoreTheme() {
-    if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-theme');
-    updateTgColors();
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') { document.body.classList.add('light-theme'); updateTgColors(true); } 
+    else { updateTgColors(false); }
 }
-
 function toggleTheme() {
     document.body.classList.toggle('light-theme');
-    localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
-    updateTgColors();
-}
-
-function updateTgColors() {
     const isLight = document.body.classList.contains('light-theme');
-    tg.setHeaderColor(isLight ? '#ffffff' : '#2c2c2e');
-    tg.setBackgroundColor(isLight ? '#f2f2f7' : '#1c1c1e');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    updateTgColors(isLight);
+}
+function updateTgColors(isLight) {
+    if (isLight) { tg.setHeaderColor('#ffffff'); tg.setBackgroundColor('#f2f2f7'); } 
+    else { tg.setHeaderColor('#2c2c2e'); tg.setBackgroundColor('#1c1c1e'); }
 }
