@@ -102,6 +102,20 @@ select { flex-grow: 1; }
     cursor: pointer;
 }
 
+.role-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--hint-color);
+    text-transform: uppercase;
+    font-weight: bold;
+}
+.role-badge.admin { background: #ffcc00; color: #000; border: none; }
+.role-badge.manager { background: #30d158; color: #fff; border: none; }
+.role-badge.worker { background: var(--input-bg); color: var(--hint-color); }
+
 /* --- API URL INPUT --- */
 .api-config {
     font-size: 12px;

@@ -34,6 +34,9 @@ console.error = (...args) => { addLog('ERR', args); originalError.apply(console,
 console.warn = (...args) => { addLog('WRN', args); originalWarn.apply(console, args); };
 window.onerror = (msg, url, line) => { console.error(`CRASH: ${msg} @ ${line}`); };
 
+// === USER ROLE ===
+let currentUserRole = 'worker';
+
 // === INIT ===
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 App Init");
@@ -68,9 +71,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (API_BASE) {
         checkConnection(); // Миттєва перевірка при старті
+        checkUserRole();
         scheduleNextPoll();
     }
 });
+
+// === ROLE CHECK ===
+async function checkUserRole() {
+    const userId = tg.initDataUnsafe?.user?.id;
+    if (!userId) {
+        updateRoleUI('guest');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/me?user_id=${userId}`, { headers: HEADERS });
+        const data = await res.json();
+        currentUserRole = data.role || 'worker';
+        updateRoleUI(currentUserRole);
+    } catch (e) {
+        console.error("Role check failed", e);
+        updateRoleUI('offline');
+    }
+}
+
+function updateRoleUI(role) {
+    const badge = document.getElementById('userRoleBadge');
+    badge.textContent = role;
+    badge.className = `role-badge ${role}`; // Додає клас для CSS кольорів
+
+    // Оновлюємо Глобальний селект (верхній)
+    const globalSelect = document.getElementById('globalActionType');
+    const options = globalSelect.options;
+    
+    // Якщо не адмін/менеджер, ховаємо опції ресток і факт
+    const isAdmin = ['admin', 'manager'].includes(role);
+    
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].value === 'restock' || options[i].value === 'fact') {
+            options[i].hidden = !isAdmin;
+            options[i].disabled = !isAdmin; // На всяк випадок
+        }
+    }
+    
+    // Якщо була вибрана заборонена опція, скидаємо на 'take'
+    if (!isAdmin && (globalSelect.value === 'restock' || globalSelect.value === 'fact')) {
+        globalSelect.value = 'take';
+    }
+}
 
 // === LOADING MODAL ===
 function showLoading(text, showProgress = false) {
@@ -356,6 +404,7 @@ window.updateQty = function(id, val) { const item = cart.find(i => i.id === id);
 window.changeItemAction = function(id, val) { const item = cart.find(i => i.id === id); if (item) item.action = val; }
 window.removeFromCart = function(id) { tg.showConfirm("Видалити?", (ok) => { if (ok) { cart = cart.filter(i => i.id !== id); render(); } }); }
 
+// === RENDER ===
 function render() {
     const list = document.getElementById('itemList');
     const btn = document.getElementById('submitBtn');
@@ -366,20 +415,50 @@ function render() {
     }
 
     list.innerHTML = "";
+    
+    // Перевіряємо права для відображення кнопок
+    const isAdmin = ['admin', 'manager'].includes(currentUserRole);
+
     cart.forEach(item => {
         const el = document.createElement('div');
         el.className = 'card';
         
-        // Індивідуальний селект
-        const selectHtml = `
-            <select class="item-action-select" onchange="changeItemAction('${item.id}', this.value)">
-                <option value="take" ${item.action === 'take' ? 'selected' : ''}>🔻 Взяти</option>
+        // Генеруємо HTML селекта динамічно залежно від ролі
+        let selectOptions = `<option value="take" ${item.action === 'take' ? 'selected' : ''}>🔻 Взяти</option>`;
+        
+        if (isAdmin) {
+            selectOptions += `
                 <option value="restock" ${item.action === 'restock' ? 'selected' : ''}>🚚 Додати</option>
                 <option value="fact" ${item.action === 'fact' ? 'selected' : ''}>📋 Факт</option>
-            </select>`;
+            `;
+        }
+
+        const selectHtml = `
+            <select class="item-action-select" onchange="changeItemAction('${item.id}', this.value)">
+                ${selectOptions}
+            </select>
+        `;
+
         el.innerHTML = `
-            <div class="card-header"><div class="item-icon">📦</div><div class="item-details"><h3>${item.name}</h3><div class="item-id-full">${item.id}</div><p>Склад: <b>${item.quantity}</b> | ${item.location}</p></div></div>
-            <div class="item-card-row">${selectHtml}<div class="qty-control"><input type="number" class="qty-input" placeholder="0" value="${item.inputQty || ''}" oninput="updateQty('${item.id}', this.value)"></div><button class="remove-btn" onclick="removeFromCart('${item.id}')">✖</button></div>`;
+            <div class="card-header">
+                <div class="item-icon">📦</div>
+                <div class="item-details">
+                    <h3>${item.name}</h3>
+                    <div class="item-id-full">${item.id}</div>
+                    <p>Склад: <b>${item.quantity}</b> | ${item.location}</p>
+                </div>
+            </div>
+            
+            <div class="item-card-row">
+                ${selectHtml}
+                <div class="qty-control">
+                    <input type="number" class="qty-input" placeholder="0" 
+                        value="${item.inputQty || ''}" 
+                        oninput="updateQty('${item.id}', this.value)">
+                </div>
+                <button class="remove-btn" onclick="removeFromCart('${item.id}')">✖</button>
+            </div>
+        `;
         list.appendChild(el);
     });
 
