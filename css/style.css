@@ -34,18 +34,26 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- HEADER --- */
+/* === ЕФЕКТ НАТИСКАННЯ КНОПОК === */
+button:active, .search-item:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+    transition: transform 0.05s ease;
+}
+
+/* --- HEADER (Z-INDEX ВИЩЕ ЗА МОДАЛКУ ЗАВАНТАЖЕННЯ) --- */
 .header {
     position: sticky;
     top: 0;
     background: var(--card-bg);
     padding: 15px;
-    z-index: 100;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     gap: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    /* ВАЖЛИВО: Щоб кнопки теми/логів працювали поверх спінера */
+    z-index: 1000; 
 }
 
 .top-row {
@@ -306,7 +314,7 @@ select { flex-grow: 1; }
 /* Модалка та кнопки */
 .modal {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8); z-index: 1000;
+    background: rgba(0,0,0,0.8); z-index: 2000; /* Logs вище всього */
     display: flex; justify-content: center; align-items: center;
 }
 
@@ -366,4 +374,83 @@ select { flex-grow: 1; }
 @keyframes spin { 
     0% { transform: rotate(0deg); } 
     100% { transform: rotate(360deg); } 
+}
+
+/* === GLOBAL LOADING MODAL === */
+.loading-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.25); /* 25% затемнення */
+    backdrop-filter: blur(2px);
+    z-index: 900; /* Менше ніж Header (1000), але вище контенту */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+.loading-modal.hidden { display: none; }
+
+.loading-content {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    min-width: 200px;
+}
+
+/* Великий спіннер */
+.big-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--hint-color);
+    border-top: 4px solid var(--button-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: var(--input-bg);
+    border-radius: 8px;
+    height: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--button-color);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* === RESULT MODAL === */
+.result-content {
+    background: var(--bg-color);
+    width: 90%;
+    max-height: 80%;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+}
+
+.result-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    background: var(--input-bg);
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    border: 1px solid var(--border-color);
 }

@@ -4,33 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vuzoll Warehouse</title>
-    <!-- Підключення Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Підключення наших стилів -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- Підключення нашої логіки (defer означає, що завантажиться після HTML) -->
     <script src="js/app.js" defer></script>
 </head>
 <body>
 
+    <!-- HEADER (Z-Index 1000) -->
     <div class="header">
         <div class="top-row">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div id="statusDot" class="status-dot disconnected"></div>
                 <h2 style="margin:0;">Склад 📦</h2>
             </div>
-            
             <div style="display: flex; gap: 10px;">
                 <button class="icon-btn" id="logsBtn">📜</button>
                 <button class="theme-btn" id="themeBtn">🌗</button>
             </div>
         </div>
 
-        <!-- ПОШУК ЗІ СПІННЕРОМ -->
         <div class="search-container">
             <div class="input-wrapper">
                 <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
-                <!-- Спіннер (за замовчуванням прихований) -->
                 <div id="searchSpinner" class="spinner hidden"></div>
             </div>
             <div id="searchResults" class="search-results hidden"></div>
@@ -40,9 +35,8 @@
             <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
         </div>
 
-        <!-- Глобальна дія -->
         <div class="controls-row">
-            <label style="font-size: 12px; color: var(--hint-color); display:flex; align-items:center;">За замовчуванням:</label>
+            <label style="font-size: 12px; color: var(--hint-color); display:flex; align-items:center;">Стандарт:</label>
             <select id="globalActionType">
                 <option value="take">🔻 Взяти</option>
                 <option value="restock">🚚 Додати</option>
@@ -52,6 +46,7 @@
         </div>
     </div>
 
+    <!-- CONTENT -->
     <div id="itemList" class="item-list">
         <div class="empty-state">
             <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
@@ -63,18 +58,41 @@
         <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
     </div>
 
-    <!-- МОДАЛКА ЛОГІВ (Тільки локальні) -->
+    <!-- 1. LOADING MODAL (Z-Index 900 - під хедером, над контентом) -->
+    <div id="loadingModal" class="loading-modal hidden">
+        <div class="loading-content">
+            <div class="big-spinner"></div>
+            <div id="loadingText" style="font-weight: bold;">Завантаження...</div>
+            <div id="progressContainer" class="progress-container hidden">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. RESULT MODAL (Z-Index 2000 - поверх всього) -->
+    <div id="resultModal" class="modal hidden">
+        <div class="result-content">
+            <div class="modal-header">
+                <h3>Результат</h3>
+                <button id="closeResultBtn" class="close-btn">✖</button>
+            </div>
+            <div id="resultText" class="result-list"></div>
+            <button id="copyResultBtn" class="action-btn">📋 Копіювати результат</button>
+        </div>
+    </div>
+
+    <!-- 3. LOGS MODAL (Z-Index 2000) -->
     <div id="logsModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Логи Сайту (Console)</h3>
+                <h3>Console Logs</h3>
                 <button id="closeLogs" class="close-btn">✖</button>
             </div>
             <div class="logs-controls">
-                <button id="copyLogsBtn" class="action-btn">📋 Копіювати все</button>
+                <button id="copyLogsBtn" class="action-btn">📋 Копіювати</button>
                 <button id="clearLogsBtn" class="action-btn danger">🗑 Очистити</button>
             </div>
-            <pre id="logsArea">Логів поки немає...</pre>
+            <pre id="logsArea">Пусто...</pre>
         </div>
     </div>
 
