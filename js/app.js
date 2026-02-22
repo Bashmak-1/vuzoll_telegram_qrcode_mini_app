@@ -87,7 +87,12 @@ async function checkUserRole() {
     try {
         const res = await fetch(`${API_BASE}/api/me?user_id=${userId}`, { headers: HEADERS });
         const data = await res.json();
-        currentUserRole = data.role || 'worker';
+        
+        if (data.error) {
+            currentUserRole = 'guest';
+        } else {
+            currentUserRole = data.role || 'worker';
+        }
         updateRoleUI(currentUserRole);
     } catch (e) {
         console.error("Role check failed", e);
@@ -98,9 +103,24 @@ async function checkUserRole() {
 function updateRoleUI(role) {
     const badge = document.getElementById('userRoleBadge');
     badge.textContent = role;
-    badge.className = `role-badge ${role}`; // Додає клас для CSS кольорів
+    badge.className = `role-badge ${role}`;
 
-    // Оновлюємо Глобальний селект (верхній)
+    // Якщо гість - блокуємо все
+    if (role === 'guest' || role === 'offline') {
+        const search = document.getElementById('searchInput');
+        search.disabled = true;
+        search.placeholder = "⛔ Немає доступу (Гість)";
+        
+        document.getElementById('scanBtn').disabled = true;
+        document.getElementById('scanBtn').style.opacity = "0.5";
+        
+        document.getElementById('globalActionType').disabled = true;
+        
+        tg.showAlert("⛔ У вас немає доступу до системи. Зверніться до адміністратора.");
+        return;
+    }
+
+    // Якщо є доступ - налаштовуємо кнопки
     const globalSelect = document.getElementById('globalActionType');
     const options = globalSelect.options;
     
@@ -110,7 +130,7 @@ function updateRoleUI(role) {
     for (let i = 0; i < options.length; i++) {
         if (options[i].value === 'restock' || options[i].value === 'fact') {
             options[i].hidden = !isAdmin;
-            options[i].disabled = !isAdmin; // На всяк випадок
+            options[i].disabled = !isAdmin; 
         }
     }
     
@@ -330,10 +350,12 @@ function debounce(func, timeout){
     };
 }
 
+// === ПОШУК (Оновлений з user_id) ===
 async function handleSearch() {
     const query = document.getElementById('searchInput').value.trim();
     const resultsDiv = document.getElementById('searchResults');
     const spinner = document.getElementById('searchSpinner');
+    const userId = tg.initDataUnsafe?.user?.id; // Отримуємо ID для запиту
 
     if (query.length < 2) {
         resultsDiv.classList.add('hidden');
@@ -348,11 +370,21 @@ async function handleSearch() {
         await new Promise(r => setTimeout(r, 300)); // UX delay
 
         console.log(`🔍 Searching: "${query}"`);
-        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`, { headers: HEADERS });
+        
+        // ДОДАЄМО user_id В ЗАПИТ
+        const url = `${API_BASE}/api/search?q=${encodeURIComponent(query)}&user_id=${userId}`;
+        
+        const res = await fetch(url, { headers: HEADERS });
+        
+        if (res.status === 403 || res.status === 401) {
+            tg.showAlert("⛔ Доступ заборонено!");
+            return;
+        }
+
         const data = await res.json();
         
         resultsDiv.innerHTML = '';
-        if (data.results?.length > 0) {
+        if (data.results && data.results.length > 0) {
             data.results.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
@@ -375,6 +407,7 @@ async function handleSearch() {
         spinner.classList.add('hidden');
     }
 }
+
 
 // === КАРТКА ТОВАРУ ===
 function addToCart(item) {
