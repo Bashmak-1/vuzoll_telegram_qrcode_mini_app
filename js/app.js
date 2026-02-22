@@ -16,6 +16,12 @@ let API_BASE = "";
 const debugLogs = [];
 const HEADERS = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
 
+// === HELPER: GET USER ID ===
+// Єдине місце, де ми беремо ID. Якщо його немає - повертаємо 0 або null.
+function getTelegramUserId() {
+    return tg.initDataUnsafe?.user?.id || null;
+}
+
 // === LOGGING SETUP ===
 const originalLog = console.log;
 const originalError = console.error;
@@ -39,7 +45,8 @@ let currentUserRole = 'worker';
 
 // === INIT ===
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("🚀 App Init");
+    console.log("🚀 App Init. UserID:", getTelegramUserId());
+    
     API_BASE = getApiUrl();
     const input = document.getElementById('apiUrlInput');
     if (input && API_BASE) input.value = API_BASE;
@@ -78,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // === ROLE CHECK ===
 async function checkUserRole() {
-    const userId = tg.initDataUnsafe?.user?.id;
+    const userId = getTelegramUserId();
     if (!userId) {
         updateRoleUI('guest');
         return;
@@ -105,26 +112,22 @@ function updateRoleUI(role) {
     badge.textContent = role;
     badge.className = `role-badge ${role}`;
 
-    // Якщо гість - блокуємо все
     if (role === 'guest' || role === 'offline') {
         const search = document.getElementById('searchInput');
         search.disabled = true;
-        search.placeholder = "⛔ Немає доступу (Гість)";
+        search.placeholder = "⛔ Немає доступу";
         
         document.getElementById('scanBtn').disabled = true;
         document.getElementById('scanBtn').style.opacity = "0.5";
         
         document.getElementById('globalActionType').disabled = true;
         
-        tg.showAlert("⛔ У вас немає доступу до системи. Зверніться до адміністратора.");
+        tg.showAlert("⛔ Доступ заборонено (User ID не знайдено або немає в базі). Зверніться до адміністратора.");
         return;
     }
 
-    // Якщо є доступ - налаштовуємо кнопки
     const globalSelect = document.getElementById('globalActionType');
     const options = globalSelect.options;
-    
-    // Якщо не адмін/менеджер, ховаємо опції ресток і факт
     const isAdmin = ['admin', 'manager'].includes(role);
     
     for (let i = 0; i < options.length; i++) {
@@ -134,7 +137,6 @@ function updateRoleUI(role) {
         }
     }
     
-    // Якщо була вибрана заборонена опція, скидаємо на 'take'
     if (!isAdmin && (globalSelect.value === 'restock' || globalSelect.value === 'fact')) {
         globalSelect.value = 'take';
     }
@@ -145,14 +147,12 @@ function showLoading(text, showProgress = false) {
     const modal = document.getElementById('loadingModal');
     document.getElementById('loadingText').textContent = text;
     const progContainer = document.getElementById('progressContainer');
-    
     if (showProgress) {
         progContainer.classList.remove('hidden');
         updateProgress(0);
     } else {
         progContainer.classList.add('hidden');
     }
-    
     modal.classList.remove('hidden');
 }
 
@@ -164,37 +164,33 @@ function hideLoading() {
     document.getElementById('loadingModal').classList.add('hidden');
 }
 
-// === SUBMIT WITH PROGRESS ===
+// === SUBMIT ===
 async function submitOrder() {
     if (!API_BASE) return;
     
-    // Валідація
     const empty = cart.filter(i => i.inputQty <= 0);
     if(empty.length > 0) {
         tg.showAlert("⚠️ Введіть кількість для всіх товарів!");
         return;
     }
 
-    // Відкриваємо модалку з прогрес-баром
     showLoading("Збереження...", true);
     
     const totalItems = cart.length;
     const results = [];
     let successCount = 0;
+    const userId = getTelegramUserId(); // Беремо ID
 
     try {
-        // Проходимо по кожному товару і відправляємо окремо
         for (let i = 0; i < totalItems; i++) {
             const item = cart[i];
-            
-            // Оновлюємо текст і прогрес
             document.getElementById('loadingText').textContent = `Збереження: ${i + 1} з ${totalItems}`;
             updateProgress(Math.round(((i) / totalItems) * 100));
 
             const payload = {
-                user_id: tg.initDataUnsafe?.user?.id,
+                user_id: userId, // <-- Передаємо ID
                 user_name: tg.initDataUnsafe?.user?.first_name,
-                items: [{ // Відправляємо як масив з 1 елемента
+                items: [{ 
                     id: item.id, 
                     qty: item.inputQty,
                     action: item.action 
@@ -213,7 +209,7 @@ async function submitOrder() {
                 results.push(...data.details);
                 successCount++;
             } else {
-                results.push(`❌ ${item.name}: ${data.error || 'Unknown Error'}`);
+                results.push(`❌ ${item.name}: ${data.error || 'Error'}`);
             }
 
             // Невелика затримка для краси (щоб око бачило прогрес)
@@ -222,12 +218,9 @@ async function submitOrder() {
         }
 
         updateProgress(100);
-        await new Promise(r => setTimeout(r, 300)); // Фінальна пауза
-
-        // Показуємо результат
+        await new Promise(r => setTimeout(r, 300)); 
         showResultModal(results);
         
-        // Очищаємо кошик тільки якщо все ок (або частково)
         if (successCount > 0) {
             cart = [];
             render();
@@ -235,7 +228,7 @@ async function submitOrder() {
 
     } catch (e) {
         console.error("Submit error:", e);
-        tg.showAlert("❌ Критична помилка: " + e.message);
+        tg.showAlert("❌ Помилка: " + e.message);
     } finally {
         hideLoading();
     }
@@ -250,18 +243,12 @@ function showResultModal(lines) {
 function copyResultText() {
     const text = document.getElementById('resultText').textContent;
     navigator.clipboard.writeText(text);
-    tg.showAlert("Результат скопійовано!");
+    tg.showAlert("Скопійовано!");
 }
 
-// === API URL & CONNECTION ===
+// === CONNECTION ===
 function saveApiUrl() {
     const val = document.getElementById('apiUrlInput').value.trim();
-    
-    // Перевірка на змішаний контент (HTTPS -> HTTP)
-    if (window.location.protocol === 'https:' && val.startsWith('http:')) {
-        alert("⚠️ УВАГА: Ви намагаєтесь підключитись до HTTP з HTTPS. Браузер може заблокувати це. Використовуйте ngrok (https)!");
-    }
-
     API_BASE = val.replace(/\/$/, "");
     localStorage.setItem('vuzoll_api_url', API_BASE);
     
@@ -277,29 +264,28 @@ async function checkConnection() {
         dot.className = 'status-dot disconnected';
         return;
     }
-
     try {
         const res = await fetch(`${API_BASE}/api/health`, { headers: HEADERS });
-        if (res.ok) {
-            dot.className = 'status-dot connected';
-        } else {
-            throw new Error(res.status);
-        }
+        if (res.ok) dot.className = 'status-dot connected';
+        else throw new Error(res.status);
     } catch (e) {
         console.warn("Connection check failed:", e.message);
         dot.className = 'status-dot disconnected';
     }
 }
 
-// === FETCH ITEM (SINGLE) ===
+// === FETCH ITEM ===
 async function fetchItem(id) {
-    showLoading("Отримання даних...");
+    showLoading("Отримання...");
     try {
         console.log("Fetching", id);
-        const res = await fetch(`${API_BASE}/api/get_item?id=${id}`, { headers: HEADERS });
+        const userId = getTelegramUserId(); // Беремо ID
         
+        const res = await fetch(`${API_BASE}/api/get_item?id=${id}&user_id=${userId}`, { headers: HEADERS });
         const type = res.headers.get("content-type");
-        if(type && !type.includes("json")) throw new Error("Ngrok Warning Page received (HTML)");
+        
+        if(type && !type.includes("json")) throw new Error("Ngrok Warning Page");
+        if (res.status === 403 || res.status === 401) throw new Error("Access denied");
 
         const data = await res.json();
         if (data.error) tg.showAlert(`❌ ${data.error}`);
@@ -312,13 +298,11 @@ async function fetchItem(id) {
     }
 }
 
-// === POLLING LOGIC ===
+// === POLLING ===
 function resetPolling() {
     lastUserActionTime = Date.now();
-    // Якщо інтервал вже виріс, скидаємо і пінгуємо
     if (currentPollingInterval > POLLING_MIN_INTERVAL) {
         currentPollingInterval = POLLING_MIN_INTERVAL;
-        console.log("⚡ Wake up! Reset poll to 5s");
         clearTimeout(pollingTimer);
         checkConnection(); 
     }
@@ -327,21 +311,14 @@ function resetPolling() {
 function scheduleNextPoll() {
     pollingTimer = setTimeout(async () => {
         await checkConnection();
-        
         const idleTime = Date.now() - lastUserActionTime;
-        if (idleTime > 60000) { 
-            // Якщо хвилину не чіпали екран, уповільнюємо
-            currentPollingInterval = Math.min(currentPollingInterval * POLLING_GROWTH_FACTOR, POLLING_MAX_INTERVAL);
-        } else {
-            currentPollingInterval = POLLING_MIN_INTERVAL;
-        }
+        if (idleTime > 60000) currentPollingInterval = Math.min(currentPollingInterval * POLLING_GROWTH_FACTOR, POLLING_MAX_INTERVAL);
+        else currentPollingInterval = POLLING_MIN_INTERVAL;
         scheduleNextPoll();
     }, currentPollingInterval);
 }
 
-// === STANDARD HELPERS (Search, Cart, Theme) ===
-// (Ці функції такі самі, як і були, але handleSearch тепер викликає fetchItem з новим лоадером)
-
+// === HELPERS ===
 let debounceTimer;
 function debounce(func, timeout){
     return (...args) => {
@@ -350,17 +327,14 @@ function debounce(func, timeout){
     };
 }
 
-// === ПОШУК (Оновлений з user_id) ===
+// === ПОШУК ===
 async function handleSearch() {
     const query = document.getElementById('searchInput').value.trim();
     const resultsDiv = document.getElementById('searchResults');
     const spinner = document.getElementById('searchSpinner');
-    const userId = tg.initDataUnsafe?.user?.id; // Отримуємо ID для запиту
+    const userId = getTelegramUserId(); // Беремо ID
 
-    if (query.length < 2) {
-        resultsDiv.classList.add('hidden');
-        return;
-    }
+    if (query.length < 2) { resultsDiv.classList.add('hidden'); return; }
 
     // Показуємо спіннер
     spinner.classList.remove('hidden');
@@ -371,10 +345,7 @@ async function handleSearch() {
 
         console.log(`🔍 Searching: "${query}"`);
         
-        // ДОДАЄМО user_id В ЗАПИТ
-        const url = `${API_BASE}/api/search?q=${encodeURIComponent(query)}&user_id=${userId}`;
-        
-        const res = await fetch(url, { headers: HEADERS });
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}&user_id=${userId}`, { headers: HEADERS });
         
         if (res.status === 403 || res.status === 401) {
             tg.showAlert("⛔ Доступ заборонено!");
@@ -411,24 +382,12 @@ async function handleSearch() {
 
 // === КАРТКА ТОВАРУ ===
 function addToCart(item) {
-    // Яку дію обрав юзер в глобальному селекті?
     const globalAction = document.getElementById('globalActionType').value;
-    
-    // Перевірка дублікатів
-    if(cart.find(i => i.id === item.id)) {
-        tg.showAlert("⚠️ Цей товар вже є в списку!");
-        return;
-    }
-
-    cart.push({ 
-        ...item, 
-        inputQty: 0,
-        action: globalAction // Індивідуальна дія за замовчуванням
-    });
+    if(cart.find(i => i.id === item.id)) { tg.showAlert("⚠️ Вже є!"); return; }
+    cart.push({ ...item, inputQty: 0, action: globalAction });
     render();
 }
 
-// ... (render, updateQty, changeItemAction, removeFromCart, themes, urlHelpers - без змін з минулої версії) ...
 function updateItemAction(id, newAction) {
     const item = cart.find(i => i.id === id);
     if (item) item.action = newAction;
@@ -448,53 +407,23 @@ function render() {
     }
 
     list.innerHTML = "";
-    
-    // Перевіряємо права для відображення кнопок
     const isAdmin = ['admin', 'manager'].includes(currentUserRole);
 
     cart.forEach(item => {
         const el = document.createElement('div');
         el.className = 'card';
-        
-        // Генеруємо HTML селекта динамічно залежно від ролі
         let selectOptions = `<option value="take" ${item.action === 'take' ? 'selected' : ''}>🔻 Взяти</option>`;
-        
         if (isAdmin) {
-            selectOptions += `
-                <option value="restock" ${item.action === 'restock' ? 'selected' : ''}>🚚 Додати</option>
-                <option value="fact" ${item.action === 'fact' ? 'selected' : ''}>📋 Факт</option>
-            `;
+            selectOptions += `<option value="restock" ${item.action === 'restock' ? 'selected' : ''}>🚚 Додати</option>
+                              <option value="fact" ${item.action === 'fact' ? 'selected' : ''}>📋 Факт</option>`;
         }
-
-        const selectHtml = `
-            <select class="item-action-select" onchange="changeItemAction('${item.id}', this.value)">
-                ${selectOptions}
-            </select>
-        `;
+        const selectHtml = `<select class="item-action-select" onchange="changeItemAction('${item.id}', this.value)">${selectOptions}</select>`;
 
         el.innerHTML = `
-            <div class="card-header">
-                <div class="item-icon">📦</div>
-                <div class="item-details">
-                    <h3>${item.name}</h3>
-                    <div class="item-id-full">${item.id}</div>
-                    <p>Склад: <b>${item.quantity}</b> | ${item.location}</p>
-                </div>
-            </div>
-            
-            <div class="item-card-row">
-                ${selectHtml}
-                <div class="qty-control">
-                    <input type="number" class="qty-input" placeholder="0" 
-                        value="${item.inputQty || ''}" 
-                        oninput="updateQty('${item.id}', this.value)">
-                </div>
-                <button class="remove-btn" onclick="removeFromCart('${item.id}')">✖</button>
-            </div>
-        `;
+            <div class="card-header"><div class="item-icon">📦</div><div class="item-details"><h3>${item.name}</h3><div class="item-id-full">${item.id}</div><p>Склад: <b>${item.quantity}</b> | ${item.location}</p></div></div>
+            <div class="item-card-row">${selectHtml}<div class="qty-control"><input type="number" class="qty-input" placeholder="0" value="${item.inputQty || ''}" oninput="updateQty('${item.id}', this.value)"></div><button class="remove-btn" onclick="removeFromCart('${item.id}')">✖</button></div>`;
         list.appendChild(el);
     });
-
     btn.disabled = false; btn.innerText = `Зберегти (${cart.length})`;
 }
 
