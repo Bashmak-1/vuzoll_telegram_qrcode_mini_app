@@ -7,6 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/app.js" defer></script>
+    <script src="js/admin.js" defer></script>
 </head>
 <body>
 
@@ -14,8 +15,9 @@
     <div class="header">
         <div class="top-row">
             <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="icon-btn burger-btn" id="menuBtn">☰</button>
                 <div id="statusDot" class="status-dot disconnected"></div>
-                <h2 style="margin:0;">Склад 📦</h2>
+                <h2 id="pageTitle" style="margin:0;">Склад 📦</h2>
                 <span id="userRoleBadge" class="role-badge">Loading...</span>
             </div>
             <div style="display: flex; gap: 10px;">
@@ -24,7 +26,7 @@
             </div>
         </div>
 
-        <div class="search-container">
+        <div class="search-container" id="warehouseSearchBlock">
             <div class="input-wrapper">
                 <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
                 <div id="searchSpinner" class="spinner hidden"></div>
@@ -32,11 +34,11 @@
             <div id="searchResults" class="search-results hidden"></div>
         </div>
 
-        <div class="api-config">
+        <div class="api-config" id="apiConfigBlock">
             <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
         </div>
 
-        <div class="controls-row">
+        <div class="controls-row" id="warehouseControlsRow">
             <label style="font-size: 12px; color: var(--hint-color); display:flex; align-items:center;">Стандарт:</label>
             <select id="globalActionType">
                 <option value="take">🔻 Взяти</option>
@@ -47,11 +49,48 @@
         </div>
     </div>
 
-    <!-- CONTENT -->
-    <div id="itemList" class="item-list">
+    <!-- BURGER SIDE MENU -->
+    <div id="sideMenuOverlay" class="side-menu-overlay hidden"></div>
+    <nav id="sideMenu" class="side-menu hidden">
+        <div class="side-menu-header">
+            <h3>Меню</h3>
+            <button class="close-btn" id="closeMenuBtn">✖</button>
+        </div>
+        <button class="side-menu-item active" id="menuWarehouse">Склад (головна)</button>
+        <button class="side-menu-item" id="menuUsers">Керування користувачами</button>
+        <button class="side-menu-item" id="menuParts">Керувати деталями</button>
+    </nav>
+
+    <!-- CONTENT: WAREHOUSE PAGE -->
+    <div id="itemList" class="item-list page-warehouse">
         <div class="empty-state">
             <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
             <p>Кошик пустий</p>
+        </div>
+    </div>
+
+    <!-- CONTENT: USERS MANAGEMENT (ADMIN ONLY) -->
+    <div id="usersPage" class="page hidden">
+        <div class="page-header-row">
+            <h3>Керування користувачами</h3>
+            <button id="inviteUserBtn" class="action-btn">➕ Запросити користувача</button>
+        </div>
+        <div id="inviteStatus" class="inline-status hidden"></div>
+        <div id="usersPageBody" class="page-body">
+            <p class="hint-text">Щоб побачити список користувачів, натисніть у меню пункт цієї сторінки. Доступ тільки для Admin.</p>
+            <div id="usersList" class="simple-list"></div>
+        </div>
+    </div>
+
+    <!-- CONTENT: PARTS MANAGEMENT (ADMIN + MANAGER) -->
+    <div id="partsPage" class="page hidden">
+        <div class="page-header-row">
+            <h3>Керувати деталями</h3>
+            <button id="reloadPartsBtn" class="action-btn">🔄 Оновити</button>
+        </div>
+        <div id="partsPageBody" class="page-body">
+            <p class="hint-text">Список всіх деталей з беку. Доступ для Admin та Manager.</p>
+            <div id="partsList" class="item-list"></div>
         </div>
     </div>
 

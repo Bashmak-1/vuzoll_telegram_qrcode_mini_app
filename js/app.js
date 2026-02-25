@@ -15,6 +15,7 @@ let cart = [];
 let API_BASE = "";
 const debugLogs = [];
 const HEADERS = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
+let currentPage = 'warehouse';
 
 // === HELPER: GET USER ID ===
 // Єдине місце, де ми беремо ID. Якщо його немає - повертаємо 0 або null.
@@ -72,6 +73,41 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeResultBtn').addEventListener('click', () => document.getElementById('resultModal').classList.add('hidden'));
     document.getElementById('copyResultBtn').addEventListener('click', copyResultText);
 
+    // Burger & side menu
+    const menuBtn = document.getElementById('menuBtn');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    const sideMenuOverlay = document.getElementById('sideMenuOverlay');
+    const menuWarehouse = document.getElementById('menuWarehouse');
+    const menuUsers = document.getElementById('menuUsers');
+    const menuParts = document.getElementById('menuParts');
+
+    if (menuBtn && sideMenu && sideMenuOverlay) {
+        menuBtn.addEventListener('click', () => toggleMenu(true));
+        sideMenuOverlay.addEventListener('click', () => toggleMenu(false));
+    }
+    if (closeMenuBtn) {
+        closeMenuBtn.addEventListener('click', () => toggleMenu(false));
+    }
+    if (menuWarehouse) {
+        menuWarehouse.addEventListener('click', () => {
+            navigateTo('warehouse');
+            toggleMenu(false);
+        });
+    }
+    if (menuUsers) {
+        menuUsers.addEventListener('click', () => {
+            navigateTo('users');
+            toggleMenu(false);
+        });
+    }
+    if (menuParts) {
+        menuParts.addEventListener('click', () => {
+            navigateTo('parts');
+            toggleMenu(false);
+        });
+    }
+
     // Polling logic
     document.addEventListener('click', resetPolling);
     document.addEventListener('touchstart', resetPolling);
@@ -82,6 +118,84 @@ document.addEventListener('DOMContentLoaded', () => {
         scheduleNextPoll();
     }
 });
+
+// === SIMPLE ROUTING ===
+function toggleMenu(open) {
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('sideMenuOverlay');
+    if (!sideMenu || !overlay) return;
+    if (open) {
+        sideMenu.classList.add('open');
+        overlay.classList.remove('hidden');
+        sideMenu.classList.remove('hidden');
+    } else {
+        sideMenu.classList.remove('open');
+        overlay.classList.add('hidden');
+        // залишаємо sideMenu.display для анімації; клас hidden тільки для стартового стану
+    }
+}
+
+function setActiveMenuItem(page) {
+    const items = [
+        { id: 'menuWarehouse', key: 'warehouse' },
+        { id: 'menuUsers', key: 'users' },
+        { id: 'menuParts', key: 'parts' },
+    ];
+    items.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (!el) return;
+        if (item.key === page) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+}
+
+function navigateTo(page) {
+    // Рольові обмеження перед запитом до беку
+    if (page === 'users' && currentUserRole !== 'admin') {
+        tg.showAlert('⛔ Доступ тільки для Admin');
+        return;
+    }
+    if (page === 'parts' && !['admin', 'manager'].includes(currentUserRole)) {
+        tg.showAlert('⛔ Доступ тільки для Admin або Manager');
+        return;
+    }
+
+    currentPage = page;
+    const itemList = document.getElementById('itemList');
+    const usersPage = document.getElementById('usersPage');
+    const partsPage = document.getElementById('partsPage');
+    const titleEl = document.getElementById('pageTitle');
+    const warehouseBlocks = [
+        document.getElementById('warehouseSearchBlock'),
+        document.getElementById('apiConfigBlock'),
+        document.getElementById('warehouseControlsRow')
+    ];
+
+    if (titleEl) {
+        if (page === 'warehouse') titleEl.textContent = 'Склад 📦';
+        if (page === 'users') titleEl.textContent = 'Керування користувачами';
+        if (page === 'parts') titleEl.textContent = 'Керувати деталями';
+    }
+
+    if (itemList) itemList.style.display = (page === 'warehouse') ? 'block' : 'none';
+    if (usersPage) usersPage.classList.toggle('hidden', page !== 'users');
+    if (partsPage) partsPage.classList.toggle('hidden', page !== 'parts');
+
+    warehouseBlocks.forEach(el => {
+        if (!el) return;
+        el.style.display = (page === 'warehouse') ? '' : 'none';
+    });
+
+    setActiveMenuItem(page);
+
+    // Ліниве завантаження сторінок
+    if (page === 'users' && typeof loadUsersPage === 'function') {
+        loadUsersPage();
+    }
+    if (page === 'parts' && typeof loadPartsPage === 'function') {
+        loadPartsPage();
+    }
+}
 
 // === ROLE CHECK ===
 async function checkUserRole() {
@@ -139,6 +253,20 @@ function updateRoleUI(role) {
     
     if (!isAdmin && (globalSelect.value === 'restock' || globalSelect.value === 'fact')) {
         globalSelect.value = 'take';
+    }
+
+    // Оновити доступність пунктів меню
+    updateMenuByRole(role);
+}
+
+function updateMenuByRole(role) {
+    const menuUsers = document.getElementById('menuUsers');
+    const menuParts = document.getElementById('menuParts');
+    if (menuUsers) {
+        menuUsers.disabled = role !== 'admin';
+    }
+    if (menuParts) {
+        menuParts.disabled = !['admin', 'manager'].includes(role);
     }
 }
 
