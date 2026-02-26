@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Керування користувачами</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Підключаємо ті самі стилі для єдиного вигляду -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+
+    <!-- Специфічні стилі для цієї сторінки (можна винести в css, але тут зручніше для наочності) -->
+    <style>
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .invite-section {
+            padding: 15px;
+        }
+
+        .invite-btn-large {
+            width: 100%;
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .invite-btn-large:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Стилі карток користувачів (як на скріншоті) */
+        .user-card {
+            background: var(--card-bg);
+            /* Темний фон #2c2c2e */
+            border-radius: 16px;
+            padding: 15px;
+            margin: 0 15px 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #333;
+            margin-right: 12px;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--text-color);
+            display: block;
+        }
+
+        .user-id {
+            font-size: 12px;
+            color: var(--hint-color);
+            margin-top: 2px;
+        }
+
+        /* Кольорові бейджі ролей (Великі) */
+        .role-select-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            color: #000;
+            /* Текст за замовчуванням чорний для контрасту */
+            cursor: default;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Кольори як на фото */
+        .role-admin {
+            background-color: #f1c40f;
+            color: #000;
+        }
+
+        /* Жовтий */
+        .role-manager {
+            background-color: #2ecc71;
+            color: #fff;
+        }
+
+        /* Зелений */
+        .role-worker {
+            background-color: #34495e;
+            color: #bdc3c7;
+        }
+
+        /* Сірий */
+    </style>
+
+    <!-- Скрипти: Тільки необхідні -->
+    <script src="js/config.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <!-- Основний скрипт для цієї сторінки -->
+    <script src="js/users.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="users-header">
+        <div class="page-title">
+            <button class="icon-btn" id="backBtn">⬅</button>
+            Керування
+        </div>
+        <div class="role-badge admin">ADMIN</div>
+    </div>
+
+    <!-- Invite Button -->
+    <div class="invite-section">
+        <button id="inviteUserBtn" class="invite-btn-large">
+            <span>+</span> Запросити до білого списку
+        </button>
+    </div>
+
+    <!-- Users List -->
+    <div id="usersListContainer">
+        <!-- Сюди JS додасть картки -->
+        <div class="spinner" style="position:relative; margin: 20px auto;"></div>
+    </div>
+
+    <!-- Loading Modal (копія з index) -->
+    <div id="loadingModal" class="loading-modal hidden">
+        <div class="loading-content">
+            <div class="big-spinner"></div>
+            <div id="loadingText">Завантаження...</div>
+        </div>
+    </div>
+
+</body>
+
+</html>

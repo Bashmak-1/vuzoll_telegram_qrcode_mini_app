@@ -1,0 +1,72 @@
+/* --- BASE MODAL --- */
+.modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8); z-index: 2000;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.modal-content {
+    background: var(--bg-color); width: 90%; height: 80%;
+    border-radius: 12px; padding: 15px; display: flex; flex-direction: column;
+}
+
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+
+/* --- LOADING MODAL (Global) --- */
+.loading-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(2px);
+    z-index: 900; /* Нижче Header, але вище контенту */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.loading-content {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    min-width: 200px;
+}
+
+.progress-container {
+    width: 100%; background-color: var(--input-bg);
+    border-radius: 8px; height: 10px; margin-top: 10px;
+    overflow: hidden; border: 1px solid var(--border-color);
+}
+
+.progress-bar {
+    height: 100%; background-color: var(--button-color);
+    width: 0%; transition: width 0.3s ease;
+}
+
+/* --- RESULT MODAL --- */
+.result-content {
+    background: var(--bg-color); width: 90%; max-height: 80%;
+    border-radius: 12px; padding: 15px; display: flex; flex-direction: column;
+    border: 1px solid var(--border-color);
+}
+
+.result-list {
+    flex-grow: 1; overflow-y: auto; background: var(--input-bg);
+    padding: 10px; border-radius: 8px; margin: 10px 0;
+    font-family: monospace; font-size: 12px; white-space: pre-wrap;
+    border: 1px solid var(--border-color);
+}
+
+/* --- LOGS MODAL --- */
+.logs-controls { display: flex; gap: 10px; margin-bottom: 10px; }
+
+#logsArea {
+    flex-grow: 1; background: #111; color: #0f0; padding: 10px;
+    overflow: auto; font-family: monospace; font-size: 11px;
+    border-radius: 6px; white-space: pre-wrap;
+}

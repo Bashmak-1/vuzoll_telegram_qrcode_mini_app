@@ -1,0 +1,196 @@
+/* Header */
+.parts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Main Button */
+.create-btn-large {
+    width: 100%;
+    background-color: #2ecc71;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
+.create-btn-large:active {
+    transform: scale(0.98);
+}
+
+/* Part Card */
+.part-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 15px;
+    margin: 0 15px 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+}
+
+.part-icon {
+    width: 45px;
+    height: 45px;
+    background: var(--bg-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-right: 12px;
+}
+
+.part-info {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.part-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.part-meta {
+    font-size: 12px;
+    color: var(--hint-color);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.part-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.part-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.mini-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Form View */
+.form-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-color);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.form-header {
+    padding: 15px;
+    background: var(--card-bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 210;
+}
+
+.form-body {
+    padding: 20px;
+}
+
+/* Inputs */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--hint-color);
+    margin-bottom: 6px;
+    margin-left: 4px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.save-btn-large {
+    width: 100%;
+    background-color: #2ecc71;
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.delete-link-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #ff453a;
+    font-size: 16px;
+    margin-top: 15px;
+    cursor: pointer;
+}

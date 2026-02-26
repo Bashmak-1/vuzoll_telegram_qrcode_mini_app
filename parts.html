@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Керування деталями</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+    <!-- Стилі спеціально для цієї сторінки -->
+    <link rel="stylesheet" href="css/parts.css">
+
+    <script src="js/config.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/parts.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="parts-header">
+        <div class="page-title">
+            <button class="icon-btn" id="backBtn">⬅</button>
+            Керування деталями
+        </div>
+        <div>
+            <button class="icon-btn" id="filterBtn">🔍</button>
+        </div>
+    </div>
+
+    <!-- Main List View -->
+    <div id="listView">
+        <div style="padding: 15px;">
+            <button id="createPartBtn" class="create-btn-large">
+                <span>+</span> Створити нову деталь
+            </button>
+        </div>
+        <div id="partsContainer" class="parts-list">
+            <div class="spinner" style="margin: 20px auto;"></div>
+        </div>
+    </div>
+
+    <!-- Form View (Overlay) -->
+    <div id="formView" class="form-view hidden">
+        <div class="form-header">
+            <button class="icon-btn" id="closeFormBtn">⬅</button>
+            <h3 id="formTitle">Редагування</h3>
+            <div style="width: 30px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="form-body">
+            <form id="partForm">
+                <input type="hidden" name="id">
+
+                <div class="form-group">
+                    <label>Назва товару</label>
+                    <input type="text" name="name" required placeholder="Введіть назву">
+                </div>
+
+                <div class="form-group">
+                    <label>Категорія</label>
+                    <select name="category" id="catSelect"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Одиниця виміру</label>
+                    <select name="unit" id="unitSelect"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Локація</label>
+                    <input type="text" name="location" placeholder="1-2-3">
+                </div>
+
+                <div class="form-group">
+                    <label>Поточна кількість</label>
+                    <input type="number" name="quantity" placeholder="0">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>К-сть в упаковці</label>
+                        <input type="number" name="qty_in_pack" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Ціна за упаковку</label>
+                        <input type="text" name="pack_price" placeholder="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Мінімальний запас (роботів)</label>
+                    <input type="number" name="min_stock" placeholder="2">
+                </div>
+
+                <div class="form-group">
+                    <label>Постачальник</label>
+                    <input type="text" name="supplier" placeholder="-">
+                </div>
+
+                <div class="form-group">
+                    <label>Посилання</label>
+                    <input type="text" name="link" placeholder="-">
+                </div>
+
+                <div class="form-group">
+                    <label>Документ/Стандарт</label>
+                    <input type="text" name="doc_name" placeholder="-">
+                </div>
+
+                <div class="form-group">
+                    <label>Кількість на 1 робота</label>
+                    <input type="number" name="qty_per_robot" placeholder="1">
+                </div>
+
+                <div style="height: 20px;"></div>
+
+                <button type="submit" class="save-btn-large">Зберегти зміни</button>
+
+                <button type="button" id="deletePartBtn" class="delete-link-btn hidden">Видалити деталь</button>
+
+                <div style="height: 40px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="loading-modal hidden">
+        <div class="loading-content">
+            <div class="big-spinner"></div>
+            <div id="loadingText">Завантаження...</div>
+        </div>
+    </div>
+
+</body>
+
+</html>

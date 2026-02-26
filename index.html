@@ -1,24 +1,39 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vuzoll Warehouse</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/app.js" defer></script>
-    <script src="js/admin.js" defer></script>
+
+    <!-- Підключаємо нові стилі -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modals.css">
+
+    <!-- Підключаємо скрипти (порядок важливий!) -->
+    <script src="js/config.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/router.js" defer></script>
+    <script src="js/main.js" defer></script>
 </head>
+
 <body>
 
-    <!-- HEADER (Z-Index 1000) -->
+    <!-- HEADER -->
     <div class="header">
         <div class="top-row">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="icon-btn burger-btn" id="menuBtn">☰</button>
+                <!-- Кнопка Бургер -->
+                <button class="icon-btn burger-btn" id="burgerBtn">☰</button>
+
                 <div id="statusDot" class="status-dot disconnected"></div>
-                <h2 id="pageTitle" style="margin:0;">Склад 📦</h2>
-                <span id="userRoleBadge" class="role-badge">Loading...</span>
+                <h2 id="pageTitle" style="margin:0;">Склад</h2>
+                <span id="userRoleBadge" class="role-badge">...</span>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button class="icon-btn" id="logsBtn">📜</button>
@@ -26,79 +41,90 @@
             </div>
         </div>
 
-        <div class="search-container" id="warehouseSearchBlock">
-            <div class="input-wrapper">
-                <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
-                <div id="searchSpinner" class="spinner hidden"></div>
+        <!-- Пошук і налаштування (тільки для головної сторінки) -->
+        <div id="mainPageControls">
+            <div class="search-container">
+                <div class="input-wrapper">
+                    <input type="text" id="searchInput" placeholder="🔍 Знайти (ID або Назва)...">
+                    <div id="searchSpinner" class="spinner hidden"></div>
+                </div>
+                <div id="searchResults" class="search-results hidden"></div>
             </div>
-            <div id="searchResults" class="search-results hidden"></div>
-        </div>
 
-        <div class="api-config" id="apiConfigBlock">
-            <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
-        </div>
+            <div class="api-config">
+                <input type="text" id="apiUrlInput" placeholder="URL API" onchange="saveApiUrl()">
+            </div>
 
-        <div class="controls-row" id="warehouseControlsRow">
-            <label style="font-size: 12px; color: var(--hint-color); display:flex; align-items:center;">Стандарт:</label>
-            <select id="globalActionType">
-                <option value="take">🔻 Взяти</option>
-                <option value="restock">🚚 Додати</option>
-                <option value="fact">📋 Факт</option>
-            </select>
-            <button class="scan-btn" id="scanBtn">📷 Скан</button>
+            <div class="controls-row">
+                <label class="hint-label">Стандарт:</label>
+                <select id="globalActionType">
+                    <option value="take">🔻 Взяти</option>
+                    <option value="restock">🚚 Додати</option>
+                    <option value="fact">📋 Факт</option>
+                </select>
+                <button class="scan-btn" id="scanBtn">📷 Скан</button>
+            </div>
         </div>
     </div>
 
-    <!-- BURGER SIDE MENU -->
-    <div id="sideMenuOverlay" class="side-menu-overlay hidden"></div>
-    <nav id="sideMenu" class="side-menu hidden">
-        <div class="side-menu-header">
-            <h3>Меню</h3>
-            <button class="close-btn" id="closeMenuBtn">✖</button>
-        </div>
-        <button class="side-menu-item active" id="menuWarehouse">Склад (головна)</button>
-        <button class="side-menu-item" id="menuUsers">Керування користувачами</button>
-        <button class="side-menu-item" id="menuParts">Керувати деталями</button>
-    </nav>
+    <!-- SIDE MENU (BURGER) -->
+    <div id="sideMenuOverlay" class="menu-overlay hidden"></div>
+    <div id="sideMenu" class="side-menu hidden">
+        <div class="menu-header">Меню <button id="closeMenuBtn" class="close-btn">✖</button></div>
+        <nav>
+            <!-- Головна залишається тут -->
+            <button class="menu-item active" onclick="toggleMenu(false)">🏠 Склад (головна)</button>
 
-    <!-- CONTENT: WAREHOUSE PAGE -->
-    <div id="itemList" class="item-list page-warehouse">
-        <div class="empty-state">
-            <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
-            <p>Кошик пустий</p>
-        </div>
+            <!-- Ця кнопка тепер веде на users.html -->
+            <a href="users.html" class="menu-item" style="text-decoration: none; display: block;">
+                👥 Користувачі (Admin)
+            </a>
+
+            <a href="parts.html" class="menu-item" style="text-decoration: none; display: block;">
+                ⚙️ Керувати деталями</a>
+        </nav>
     </div>
 
-    <!-- CONTENT: USERS MANAGEMENT (ADMIN ONLY) -->
-    <div id="usersPage" class="page hidden">
-        <div class="page-header-row">
-            <h3>Керування користувачами</h3>
-            <button id="inviteUserBtn" class="action-btn">➕ Запросити користувача</button>
+    <!-- СТОРІНКИ -->
+    <div id="pagesContainer">
+
+        <!-- 1. ГОЛОВНА (СКЛАД) -->
+        <div id="page-home" class="page-block active">
+            <div id="itemList" class="item-list">
+                <div class="empty-state">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
+                    <p>Кошик пустий</p>
+                </div>
+            </div>
+            <div class="footer">
+                <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
+            </div>
         </div>
-        <div id="inviteStatus" class="inline-status hidden"></div>
-        <div id="usersPageBody" class="page-body">
-            <p class="hint-text">Щоб побачити список користувачів, натисніть у меню пункт цієї сторінки. Доступ тільки для Admin.</p>
-            <div id="usersList" class="simple-list"></div>
+
+        <!-- 2. КОРИСТУВАЧІ -->
+        <div id="page-users" class="page-block hidden">
+            <div class="page-actions">
+                <button class="action-btn primary" id="inviteUserBtn">➕ Запросити користувача</button>
+            </div>
+            <div id="usersList" class="data-list">
+                <!-- Сюди завантажаться юзери -->
+            </div>
         </div>
+
+        <!-- 3. ДЕТАЛІ -->
+        <div id="page-parts" class="page-block hidden">
+            <div class="page-actions">
+                <button class="action-btn" id="refreshPartsBtn">🔄 Оновити список</button>
+            </div>
+            <div id="partsList" class="data-list">
+                <!-- Сюди завантажаться деталі -->
+            </div>
+        </div>
+
     </div>
 
-    <!-- CONTENT: PARTS MANAGEMENT (ADMIN + MANAGER) -->
-    <div id="partsPage" class="page hidden">
-        <div class="page-header-row">
-            <h3>Керувати деталями</h3>
-            <button id="reloadPartsBtn" class="action-btn">🔄 Оновити</button>
-        </div>
-        <div id="partsPageBody" class="page-body">
-            <p class="hint-text">Список всіх деталей з беку. Доступ для Admin та Manager.</p>
-            <div id="partsList" class="item-list"></div>
-        </div>
-    </div>
-
-    <div class="footer">
-        <button id="submitBtn" class="submit-btn" disabled>Зберегти (0)</button>
-    </div>
-
-    <!-- 1. LOADING MODAL (Z-Index 900 - під хедером, над контентом) -->
+    <!-- МОДАЛКИ (Loading, Result, Logs) -->
+    <!-- ... (код модалок Loading, Result, Logs такий самий, як був) ... -->
     <div id="loadingModal" class="loading-modal hidden">
         <div class="loading-content">
             <div class="big-spinner"></div>
@@ -109,7 +135,6 @@
         </div>
     </div>
 
-    <!-- 2. RESULT MODAL (Z-Index 2000 - поверх всього) -->
     <div id="resultModal" class="modal hidden">
         <div class="result-content">
             <div class="modal-header">
@@ -121,12 +146,10 @@
         </div>
     </div>
 
-    <!-- 3. LOGS MODAL (Z-Index 2000) -->
     <div id="logsModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Console Logs</h3>
-                <button id="closeLogs" class="close-btn">✖</button>
+                <h3>Logs</h3><button id="closeLogs" class="close-btn">✖</button>
             </div>
             <div class="logs-controls">
                 <button id="copyLogsBtn" class="action-btn">📋 Копіювати</button>
@@ -137,4 +160,5 @@
     </div>
 
 </body>
+
 </html>
