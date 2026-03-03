@@ -1,196 +1,389 @@
-/* Header */
+/* --- GLOBAL PAGE SETUP --- */
+body {
+    background-color: #121212 !important;
+    /* Глибокий чорний */
+    color: #ffffff;
+    padding-bottom: 100px;
+    /* Місце для футера */
+}
+
+/* --- HEADER --- */
 .parts-header {
+    background-color: #1e1e1e;
+    padding: 10px 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #333;
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-.page-title {
-    font-size: 20px;
-    font-weight: bold;
+.header-left {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* Main Button */
+.header-right {
+    display: flex;
+    gap: 15px;
+    font-size: 18px;
+    color: #888;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #2ecc71;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #2ecc71;
+}
+
+.admin-badge {
+    background: #f1c40f;
+    color: #000;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+/* --- SUMMARY BAR & FILTERS --- */
+.summary-bar {
+    padding: 10px 15px;
+    font-size: 13px;
+    color: #aaa;
+    text-align: center;
+    background: #121212;
+}
+
+.summary-highlight {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.summary-settings {
+    color: #f39c12;
+}
+
+.action-area {
+    padding: 0 15px 10px 15px;
+}
+
 .create-btn-large {
     width: 100%;
     background-color: #2ecc71;
+    /* Яскравий зелений */
     color: white;
-    padding: 14px;
-    border-radius: 12px;
+    padding: 12px;
+    border-radius: 8px;
     border: none;
     font-size: 16px;
     font-weight: bold;
-    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+    margin-bottom: 10px;
 }
 
-.create-btn-large:active {
-    transform: scale(0.98);
+.filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-/* Part Card */
-.part-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 15px;
-    margin: 0 15px 12px 15px;
+.filter-btn {
+    flex: 1;
+    background: #252525;
+    border: 1px solid #333;
+    color: #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid var(--border-color);
 }
 
-.part-icon {
-    width: 45px;
-    height: 45px;
-    background: var(--bg-color);
-    border-radius: 10px;
+/* --- PART CARD DESIGN --- */
+.part-card {
+    background-color: #1e1e1e;
+    /* Темно-сірий фон картки */
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0 15px 15px 15px;
+    border: 1px solid #333;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Header */
+.card-header-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.checkbox-wrapper input {
+    width: 18px;
+    height: 18px;
+    accent-color: #888;
+    cursor: pointer;
+}
+
+.part-icon-box {
+    width: 40px;
+    height: 40px;
+    background: #121212;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    margin-right: 12px;
+    font-size: 20px;
+    color: #ccc;
 }
 
-.part-info {
+.part-titles {
     flex-grow: 1;
     overflow: hidden;
 }
 
-.part-title {
+.part-name {
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 4px;
+    color: #fff;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.part-meta {
-    font-size: 12px;
-    color: var(--hint-color);
-    display: flex;
-    gap: 10px;
-    align-items: center;
+.part-id {
+    font-size: 11px;
+    color: #666;
+    font-family: monospace;
 }
 
-.part-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.part-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.mini-btn {
-    width: 36px;
-    height: 36px;
-    background: var(--bg-color);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-/* Form View */
-.form-view {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--bg-color);
-    z-index: 200;
+.card-actions {
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    gap: 5px;
+}
+
+.edit-icon-btn {
+    color: #f39c12;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.menu-icon-btn {
+    color: #3498db;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Grid Info */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Дві колонки */
+    gap: 8px;
+    background: #181818;
+    /* Ще темніший підфон */
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 10px;
+}
+
+/* Додаткові стилі для посилань */
+.part-link {
+    color: #3498db;
+    /* Синій колір, як у інших кнопок */
+    text-decoration: none;
+    /* Прибираємо підкреслення */
+
+    /* Магія для трьох крапок */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    display: block;
+    /* Важливо для коректної роботи ellipsis всередині flex */
+    max-width: 100%;
+    /* Обмежуємо ширину, щоб не ламало верстку */
+    flex: 1;
+    /* Займає весь вільний простір після іконки */
+}
+
+/* Підкреслення при наведенні (опціонально) */
+.part-link:hover {
+    text-decoration: underline;
+}
+
+.info-item {
+    font-size: 12px;
+    color: #bbb;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.info-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+}
+
+/* Price Row */
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #ccc;
+    padding: 0 5px 8px 5px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 8px;
+}
+
+/* Progress Bar */
+.progress-section {
+    margin-bottom: 8px;
+}
+
+.progress-bg {
+    width: 100%;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+
+.fill-green {
+    background: #2ecc71;
+}
+
+.fill-yellow {
+    background: #f1c40f;
+}
+
+.fill-red {
+    background: #e74c3c;
+}
+
+/* Card Footer Stats */
+.card-footer-stats {
+    font-size: 11px;
+    color: #ddd;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+}
+
+.stat-val {
+    color: #fff;
+    font-weight: bold;
+}
+
+.stat-separator {
+    color: #555;
+}
+
+.status-text {
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.st-good {
+    color: #2ecc71;
+}
+
+.st-warn {
+    color: #f1c40f;
+}
+
+.st-crit {
+    color: #e74c3c;
+}
+
+/* --- FLOATING FOOTER --- */
+.floating-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1e1e1e;
+    padding: 10px 15px;
+    border-top: 1px solid #333;
+    z-index: 500;
+}
+
+.footer-info {
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.save-changes-btn {
+    width: 100%;
+    background: #3498db;
+    /* Синій */
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+}
+
+/* Form Styles Override */
+.form-view {
+    background-color: #121212;
 }
 
 .form-header {
-    padding: 15px;
-    background: var(--card-bg);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 210;
-}
-
-.form-body {
-    padding: 20px;
-}
-
-/* Inputs */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 12px;
-    color: var(--hint-color);
-    margin-bottom: 6px;
-    margin-left: 4px;
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #333;
+    color: white;
 }
 
 .form-group input,
 .form-group select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-.form-row {
-    display: flex;
-    gap: 15px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-.save-btn-large {
-    width: 100%;
-    background-color: #2ecc71;
+    background: #252525;
+    border-color: #444;
     color: white;
-    padding: 15px;
-    border-radius: 12px;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
 }
 
-.delete-link-btn {
-    width: 100%;
-    background: none;
-    border: none;
-    color: #ff453a;
-    font-size: 16px;
-    margin-top: 15px;
-    cursor: pointer;
+.form-group label {
+    color: #aaa;
 }

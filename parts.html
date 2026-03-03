@@ -8,11 +8,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/modals.css">
-    <!-- Стилі спеціально для цієї сторінки -->
-    <link rel="stylesheet" href="css/parts.css">
+    <link rel="stylesheet" href="css/parts.css"> <!-- Нові стилі -->
 
     <script src="js/config.js" defer></script>
     <script src="js/utils.js" defer></script>
@@ -24,107 +20,152 @@
 
     <!-- Header -->
     <div class="parts-header">
-        <div class="page-title">
-            <button class="icon-btn" id="backBtn">⬅</button>
-            Керування деталями
+        <div class="header-left">
+            <button class="icon-btn" id="backBtn" style="border:none; padding:0; font-size:20px;">☰</button>
+            <div class="header-title">
+                <div class="status-dot"></div>
+                Керування деталями
+                <span class="admin-badge">ADMIN</span>
+            </div>
         </div>
-        <div>
-            <button class="icon-btn" id="filterBtn">🔍</button>
+        <div class="header-right">
+            <span>⚙️</span>
+            <span>👤</span>
         </div>
     </div>
 
-    <!-- Main List View -->
-    <div id="listView">
-        <div style="padding: 15px;">
-            <button id="createPartBtn" class="create-btn-large">
-                <span>+</span> Створити нову деталь
+    <!-- Summary & Filters -->
+    <div class="summary-bar">
+        Всього: <span id="totalCount" style="color:#2ecc71">0</span> деталей |
+        <span class="summary-settings">⚙️: 0</span> |
+        Критично: <span id="criticalCount" class="summary-highlight">0</span>
+    </div>
+
+    <div class="action-area">
+        <button id="createPartBtn" class="create-btn-large">
+            <span>+</span> Створити нову деталь
+        </button>
+
+        <div class="filter-row">
+            <button class="filter-btn">
+                Пошук / Фільтри <span>▼</span>
+            </button>
+            <button class="filter-btn">
+                Сортувати за статусом <span>▼</span>
             </button>
         </div>
-        <div id="partsContainer" class="parts-list">
+    </div>
+
+    <!-- Main List -->
+    <div id="listView">
+        <div id="partsContainer" style="padding-bottom: 20px;">
             <div class="spinner" style="margin: 20px auto;"></div>
         </div>
     </div>
 
-    <!-- Form View (Overlay) -->
-    <div id="formView" class="form-view hidden">
-        <div class="form-header">
-            <button class="icon-btn" id="closeFormBtn">⬅</button>
-            <h3 id="formTitle">Редагування</h3>
-            <div style="width: 30px;"></div> <!-- Spacer -->
+    <!-- Floating Footer -->
+    <div class="floating-footer">
+        <div class="footer-info">
+            Всього деталей: <span id="footerTotal">0</span> | &lt;cite&gt;: 0 | Критично: <span id="footerCrit"
+                style="color:#e74c3c">0</span>
+        </div>
+        <button class="save-changes-btn" id="bulkSaveBtn">
+            Зберегти зміни (<span id="selectedCount">0</span>)
+        </button>
+    </div>
+
+    <!-- Form View (Overlay) - залишаємо майже без змін, лише стилі підтягнуться з CSS -->
+    <div id="formView" class="form-view hidden"
+        style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; z-index: 1000; overflow-y: auto;">
+        <div class="form-header" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <button class="icon-btn" id="closeFormBtn" style="color:white; border:none;">⬅</button>
+            <h3 id="formTitle" style="margin:0">Деталь</h3>
+            <div style="width: 30px;"></div>
         </div>
 
-        <div class="form-body">
+        <div class="form-body" style="padding:20px;">
             <form id="partForm">
                 <input type="hidden" name="id">
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:15px;">
                     <label>Назва товару</label>
-                    <input type="text" name="name" required placeholder="Введіть назву">
+                    <input type="text" name="name" required placeholder="Введіть назву"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-group">
-                    <label>Категорія</label>
-                    <select name="category" id="catSelect"></select>
+                <div class="info-grid"
+                    style="background:none; border:none; padding:0; display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1">
+                        <label style="font-size:12px; color:#888;">Категорія</label>
+                        <select name="category" id="catSelect"
+                            style="width:100%; padding:10px; border-radius:8px;"></select>
+                    </div>
+                    <div style="flex:1">
+                        <label style="font-size:12px; color:#888;">Одиниця</label>
+                        <select name="unit" id="unitSelect"
+                            style="width:100%; padding:10px; border-radius:8px;"></select>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Одиниця виміру</label>
-                    <select name="unit" id="unitSelect"></select>
-                </div>
-
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:15px;">
                     <label>Локація</label>
-                    <input type="text" name="location" placeholder="1-2-3">
+                    <input type="text" name="location" placeholder="1-2-3"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:15px;">
                     <label>Поточна кількість</label>
-                    <input type="number" name="quantity" placeholder="0">
+                    <input type="number" name="quantity" placeholder="0"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>К-сть в упаковці</label>
-                        <input type="number" name="qty_in_pack" placeholder="1">
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1">
+                        <label style="font-size:12px; color:#888;">В упак.</label>
+                        <input type="number" name="qty_in_pack" placeholder="1"
+                            style="width:100%; padding:10px; border-radius:8px;">
                     </div>
-                    <div class="form-group">
-                        <label>Ціна за упаковку</label>
-                        <input type="text" name="pack_price" placeholder="10">
+                    <div style="flex:1">
+                        <label style="font-size:12px; color:#888;">Ціна упак.</label>
+                        <input type="text" name="pack_price" placeholder="0"
+                            style="width:100%; padding:10px; border-radius:8px;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Мінімальний запас (роботів)</label>
-                    <input type="number" name="min_stock" placeholder="2">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>Мін. запас (роботів)</label>
+                    <input type="number" name="min_stock" placeholder="2"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:15px;">
                     <label>Постачальник</label>
-                    <input type="text" name="supplier" placeholder="-">
+                    <input type="text" name="supplier" placeholder="UA3D"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
-
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>Документ</label>
+                    <input type="text" name="doc_name" placeholder="ISO..."
+                        style="width:100%; padding:10px; border-radius:8px;">
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
                     <label>Посилання</label>
-                    <input type="text" name="link" placeholder="-">
+                    <input type="text" name="link" placeholder="http..."
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-group">
-                    <label>Документ/Стандарт</label>
-                    <input type="text" name="doc_name" placeholder="-">
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>На 1 робота</label>
+                    <input type="number" name="qty_per_robot" placeholder="1"
+                        style="width:100%; padding:10px; border-radius:8px;">
                 </div>
 
-                <div class="form-group">
-                    <label>Кількість на 1 робота</label>
-                    <input type="number" name="qty_per_robot" placeholder="1">
-                </div>
-
-                <div style="height: 20px;"></div>
-
-                <button type="submit" class="save-btn-large">Зберегти зміни</button>
-
-                <button type="button" id="deletePartBtn" class="delete-link-btn hidden">Видалити деталь</button>
-
-                <div style="height: 40px;"></div>
+                <button type="submit" class="create-btn-large" style="background:#3498db; margin-bottom:10px;">Зберегти
+                    зміни</button>
+                <button type="button" id="deletePartBtn"
+                    style="width:100%; background:none; border:none; color:#e74c3c; padding:10px;">Видалити
+                    деталь</button>
+                <div style="height:50px;"></div>
             </form>
         </div>
     </div>
