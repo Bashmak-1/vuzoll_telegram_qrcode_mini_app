@@ -1,10 +1,8 @@
 /* --- GLOBAL PAGE SETUP --- */
 body {
     background-color: #121212 !important;
-    /* Глибокий чорний */
     color: #ffffff;
     padding-bottom: 100px;
-    /* Місце для футера */
 }
 
 /* --- HEADER --- */
@@ -83,7 +81,6 @@ body {
 .create-btn-large {
     width: 100%;
     background-color: #2ecc71;
-    /* Яскравий зелений */
     color: white;
     padding: 12px;
     border-radius: 8px;
@@ -117,125 +114,142 @@ body {
     align-items: center;
 }
 
-/* --- PART CARD DESIGN --- */
+/* --- PART CARD DESIGN (NEW) --- */
 .part-card {
     background-color: #1e1e1e;
-    /* Темно-сірий фон картки */
     border-radius: 12px;
     padding: 12px;
-    margin: 0 15px 15px 15px;
+    margin: 0 15px 20px 15px;
+    /* Більший відступ знизу */
     border: 1px solid #333;
     position: relative;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-/* Card Header */
+/* 1. Image Area */
+.part-img-container {
+    width: 100%;
+    min-height: 180px;
+    /* Половина ширини (приблизно) + запас */
+    background-color: #252525;
+    /* Темний фон для PNG */
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #2a2a2a;
+}
+
+.part-img {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    /* Щоб не було надто високим */
+    object-fit: contain;
+    /* Зберігає пропорції */
+    display: block;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.part-img.loaded {
+    opacity: 1;
+}
+
+/* Fallback Icon (Wrench) */
+.part-fallback-icon {
+    font-size: 50px;
+    color: #444;
+    display: none;
+    /* JS вмикає це, якщо фото немає */
+}
+
+/* 2. Header Area (Name & ID) */
 .card-header-row {
     display: flex;
     gap: 10px;
-    align-items: center;
-    margin-bottom: 12px;
+    align-items: stretch;
+    /* Розтягуємо дочірні елементи на всю висоту */
+    justify-content: space-between;
+    min-height: 50px;
+    /* Можна задати мінімальну висоту для естетики */
 }
 
-.checkbox-wrapper input {
-    width: 18px;
-    height: 18px;
-    accent-color: #888;
-    cursor: pointer;
-}
-
-.part-icon-box {
-    width: 40px;
-    height: 40px;
-    background: #121212;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: #ccc;
-}
-
+/* Оновлюємо цей клас */
 .part-titles {
     flex-grow: 1;
-    overflow: hidden;
+    min-width: 0;
+
+    /* Додаємо Flexbox для центрування всередині блоку */
+    display: flex;
+    flex-direction: column;
+    /* Розміщуємо Назву над ID */
+    justify-content: center;
+    /* Центруємо по вертикалі */
 }
 
+/* Додатково можна прибрати відступи, які можуть заважати центруванню */
 .part-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
     margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* Мінімальний відступ між назвою та ID */
+    line-height: 1.2;
 }
 
 .part-id {
     font-size: 11px;
     color: #666;
     font-family: monospace;
+    background: #181818;
+    padding: 2px 5px;
+    border-radius: 4px;
+    display: inline-block;
 }
 
 .card-actions {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+    flex-shrink: 0;
+    /* Кнопки не стискаються */
+}
+
+.edit-icon-btn,
+.menu-icon-btn {
+    background: #2c2c2e;
+    border: 1px solid #3a3a3c;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .edit-icon-btn {
     color: #f39c12;
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
 }
 
 .menu-icon-btn {
     color: #3498db;
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
 }
 
-/* Grid Info */
+/* 3. Info Grid */
 .info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* Дві колонки */
     gap: 8px;
     background: #181818;
-    /* Ще темніший підфон */
-    padding: 8px;
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #2a2a2a;
-    margin-bottom: 10px;
-}
-
-/* Додаткові стилі для посилань */
-.part-link {
-    color: #3498db;
-    /* Синій колір, як у інших кнопок */
-    text-decoration: none;
-    /* Прибираємо підкреслення */
-
-    /* Магія для трьох крапок */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    display: block;
-    /* Важливо для коректної роботи ellipsis всередині flex */
-    max-width: 100%;
-    /* Обмежуємо ширину, щоб не ламало верстку */
-    flex: 1;
-    /* Займає весь вільний простір після іконки */
-}
-
-/* Підкреслення при наведенні (опціонально) */
-.part-link:hover {
-    text-decoration: underline;
 }
 
 .info-item {
@@ -256,33 +270,41 @@ body {
     text-align: center;
 }
 
-/* Price Row */
+.part-link {
+    color: #3498db;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 100%;
+    flex: 1;
+}
+
+/* 4. Stats & Footer */
 .price-row {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
     color: #ccc;
-    padding: 0 5px 8px 5px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 8px;
+    padding: 0 5px;
 }
 
-/* Progress Bar */
 .progress-section {
-    margin-bottom: 8px;
+    margin-top: 5px;
 }
 
 .progress-bg {
     width: 100%;
-    height: 6px;
+    height: 8px;
     background: #333;
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    border-radius: 3px;
+    border-radius: 4px;
     transition: width 0.3s;
 }
 
@@ -298,14 +320,16 @@ body {
     background: #e74c3c;
 }
 
-/* Card Footer Stats */
 .card-footer-stats {
-    font-size: 11px;
+    font-size: 12px;
     color: #ddd;
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
     align-items: center;
+    margin-top: 5px;
+    padding-top: 8px;
+    border-top: 1px solid #333;
 }
 
 .stat-val {
@@ -334,7 +358,7 @@ body {
     color: #e74c3c;
 }
 
-/* --- FLOATING FOOTER --- */
+/* Floating Footer */
 .floating-footer {
     position: fixed;
     bottom: 0;
@@ -356,17 +380,15 @@ body {
 .save-changes-btn {
     width: 100%;
     background: #3498db;
-    /* Синій */
     color: white;
     padding: 14px;
     border-radius: 12px;
     font-size: 16px;
     font-weight: bold;
     border: none;
-    box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
 }
 
-/* Form Styles Override */
+/* Form */
 .form-view {
     background-color: #121212;
 }
